@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css">
+    <title>KC Reader</title>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Chapters</h2>
+        <ul>
+            <li><a href="#section1">Chapter 1: The Problem</a></li>
+            <li><a href="#section2">Chapter 2: Solving the Obfuscation</a></li>
+            <li><a href="#section3">Chapter 3: Afterword</a></li>
+        </ul>
+    </div>
+
+    <div id="content">
+        <div class="content-box">
+            <section id="section1">
+                <h2>The Problem</h2>
+                <p>
+                    In this file:  
+                </p>
+                <div class="code-container">
+                    <div class="code-title">
+                        <img src="../images/go-icon.svg" alt="Go icon" class="language-icon">
+                        <span>main.go</span>
+                    </div>
+
+                    <pre><code class="language-go">package main
+
+import (
+    *snip*
+)
+
+var CharSet = map[rune]string{
+    *snip*
+}
+
+func catify(input string, keys []int) string {
+	var keyedText string
+	var result string
+	for i, char := range input {
+		keyedText += string(rune(int(char) + keys[i]))
+	}
+	fmt.Printf("I2Keyed: %s\n", keyedText)
+	hexEncoded := strings.ToUpper(hex.EncodeToString([]byte(keyedText)))
+	fmt.Printf("K2Hex: %s\n", hexEncoded)
+
+	for _, rune := range hexEncoded {
+		result += CharSet[rune]
+	}
+	return result
+}
+
+func savePair(name, input, output string) {
+	inputFile, err := os.OpenFile(name+"_input.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer inputFile.Close()
+	outputFile, err := os.OpenFile(name+"_output.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer outputFile.Close()
+	if _, err := inputFile.Write([]byte(input)); err != nil {
+		fmt.Println(err)
+		return
+	}
+	if _, err := outputFile.Write([]byte(output)); err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func getKeys(length int) []int {
+	var keys = []int{}
+	keyFileName := fmt.Sprintf("keys_%d.json", length)
+	file, err := os.Open(keyFileName)
+	if err != nil {
+
+		for i := 0; i < length; i++ {
+			num, _ := rand.Int(rand.Reader, big.NewInt(60000))
+			keys = append(keys, int(num.Int64()))
+		}
+		keyFile, err := os.OpenFile(keyFileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Println(err)
+			return []int{}
+		}
+		defer keyFile.Close()
+		encoded, _ := json.Marshal(keys)
+		keyFile.Write(encoded)
+		return keys
+	}
+	json.NewDecoder(file).Decode(&keys)
+	return keys
+}
+
+func main() {
+	input := "You fools! You will never get my catnip!!!!!!!"
+	keys := getKeys(len(input))
+	encoded := catify(input, keys)
+	savePair("example", input, encoded)
+}
+</code></pre>              
+
+                </div>   
+                <p>
+                    a message is obfuscated through a series of character value shifts. 
+                    Each character is shifted using a set of random key values, then hex-encoded, 
+                    and finally mapped to emojis. While it hides the original text, 
+                    it lacks actual cryptographic security—functioning more like base64 encoding 
+                    rather than true encryption.
+                </p>
+            </section>
+            <section id="section2">
+                <h2>Solving the Obfuscation</h2>
+                <p>
+                    To reverse the encoding, we need to undo each transformation step. Simple, right?
+                </p>
+                <div class="code-container">
+                    <div class="code-title">
+                        <img src="../images/python-icon.svg" alt="Python icon" class="language-icon">
+                        <span>solve.py</span>
+                    </div>
+                    <pre><code class="language-python">*snip*
+def emojis_to_hex(ciphertext_emoji: str) -> str:
+    return pattern.sub(lambda m: emoji_to_hex_map[m.group()], ciphertext_emoji)
+
+def hex_to_keyed_text(hex_string: str) -> str:
+    return binascii.unhexlify(hex_string).decode('utf-8')
+
+# use known plaintext before the obsfucation 
+example_hex = emojis_to_hex(example_cipher_emoji)
+example_keyed_text = hex_to_keyed_text(example_hex)
+keys = [ord(k) - ord(p) for p, k in zip(plaintext, example_keyed_text)]
+
+# find the flag
+flag_hex = emojis_to_hex(flag_cipher_emoji)
+flag_keyed_text = hex_to_keyed_text(flag_hex)
+flag_plaintext = ''.join([chr(ord(k) - key) for k, key in zip(flag_keyed_text, keys)])
+
+print("recovered keys:", keys)
+print("flag:", flag_plaintext)</code></pre>
+                </div>
+                <p> 
+                    First, we map the emojis back to their corresponding hex values. 
+                    Then, we convert the hex back into an intermediate "keyed" text. 
+                    Since we have a known plaintext example, 
+                    we can determine the character shift values used in the encoding. 
+                    With the keys, we subtract the shifts from the encoded flag text to determine the original message. 
+                    The lack of cryptographic security makes this decryption easy—once the pattern is identified, 
+                    reversing it is just a matter of applying character operations.
+                </p>
+            </section>
+            <section id="section3">
+                <h2>Afterword</h2>
+                <p>
+                    This write-up was done in part for IRISCTF 2025.
+                    It was a fun challenge that required a mix of cryptography, reverse engineering, and programming skills.
+                </p>
+                <p>
+                    The decoding process demonstrated here emphasizes how reverse engineering can often reveal what lies beneath the surface of seemingly secure systems. 
+                    It demonstrates the limitations of security through obscurity, and that simpler, isn't always better.
+                </p>
+                <p>
+                    I hope this write-up brought you insight into the "complexity" of string obfuscation algorithms and how easily some of them can be defeated.
+                </p>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
+
