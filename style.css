@@ -27,11 +27,11 @@ body {
 }
 
 .left-column {
-    display: flex; /* Enable flexbox */
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center items horizontally */
-    justify-content: center; /* Center items vertically */
-    text-align: center; /* Center the text below the image */
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
     width: 40%;
     background-color: #313244;
     padding: 20px;
@@ -53,29 +53,29 @@ body {
 }
 
 .button-group {
-    margin-top: 20px; /* Add spacing above the buttons */
+    margin-top: 20px; 
     display: flex;
-    flex-direction: column; /* Stack buttons vertically */
-    gap: 10px; /* Space between buttons */
-    align-items: center; /* Center buttons */
+    flex-direction: column; 
+    gap: 10px; 
+    align-items: center; 
 }
 
 .btn {
-    text-decoration: none; /* Remove underline from links */
-    background-color: transparent; /* Match the page's background color */
-    color: #cdd6f4; /* Text color for contrast */
-    padding: 10px 20px; /* Add spacing inside the button */
-    border-radius: 5px; /* Slightly rounded corners */
-    border: 2px solid #45475a; /* Border for contrast */
+    text-decoration: none; 
+    background-color: transparent; 
+    color: #cdd6f4; 
+    padding: 10px 20px; 
+    border-radius: 5px; 
+    border: 2px solid #45475a;
     transition: background-color 0.3s, color 0.3s, border-color 0.3s;
     font-size: 16px;
     font-weight: bold;
 }
 
 .btn:hover {
-    background-color: #45475a; /* Slightly darker background on hover */
-    border-color: #fab387; /* Highlight border on hover */
-    color: #fab387; /* Change text color on hover */
+    background-color: #45475a; 
+    border-color: #fab387; 
+    color: #fab387; 
 }
 
 
