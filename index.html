@@ -1,29 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-    	<head>
-        	<meta charset="UTF-8">
-        	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-        	<link rel="stylesheet" href="style.css" />
-        	<title>index - redecorate</title>
-    	</head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="security researcher.">
+    <meta name="author" content="redecorate">
+    
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    
+    <title>redecorate (lol)</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <img src="images/pfp.png" alt="redecorate" class="profile-pic">
+                <div class="header-text">
+                    <h1 class="title">"redecorate"</h1>
+                    <p class="subtitle">security researcher. shitty programmer.</p>
+                </div>
+            </div>
+        </header>
 
-	<body>
-    		<div class="left-column">
-				<img src="./images/pfp.png" alt="Profile picture" class="profile-image">
-        		<h2>redecorate</h2>
-        		<p>the "vibe-coder" of a generation. oh and various security issues along with that</p>
-				<div class="button-group">
-					<a href="https://github.com/redecorate" target="_blank" class="btn">GitHub</a>
-				</div>
-    		</div>
+        <main class="main">
+            <section class="work">                
+                <div class="work-list">
 
-    		<div class="right-column">
-        		<div class="textbox-section">
-            			<a href="writeups/iris2025-kittycrypt.html" class="textbox">
-                			<h2>IRISCTF 2025 - Solving Keyed Substitution (Kittycrypt Challenge)</h2>
-                			<p>I have never hated cat emojis more.</p>
-            			</a>
-        		</div>
-    		</div>
-	</body>
+
+                    <article class="work-item">
+                        <div class="work-meta">
+                            <span class="year">2025</span>
+                            <span class="category">CTF</span>
+                        </div>
+                        <h3 class="work-title">
+                            <a href="writeups/iris2025-kittycrypt.html">IrisCTF 2025 - KittyCrypt</a>
+                        </h3>
+                        <p class="work-description">
+                            write up for a cryptography challenge involving pseudo-random number generators.
+                        </p>
+                        <div class="work-tags">
+                            <span>cryptography</span>
+                            <span>prng</span>
+                            <span>python</span>
+                        </div>
+                    </article>
+                  
+                </div>
+            </section>
+        </main>
+
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-main">
+                <div class="footer-section">
+                    <h3>contact</h3>
+                    <p>discord: redec0rate</p>
+                    <p><a href="https://github.com/redecorate" target="_blank" rel="noopener">github.com/redecorate</a></p>
+                </div>
+            </div>      
+            <div class="footer-bottom">
+                <div class="footer-bottom-inner">
+                    <div class="copyright-line">
+                        <p>&copy; 2025 redecorate.lol</p>
+                        <p>V2.0 - 17/08/2025</p>
+                    </div>
+                    <p id="footer-quote"></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js" defer></script>
+</body>
 </html>
