@@ -33,36 +33,3 @@
 		setRandomFooterQuote();
 	}
 })();
-
-(function () {
-	'use strict';
-
-	var potentialpfps = [
-		'images/pfps/pfp.jpg',
-		'images/pfps/pfp-alt.jpg',
-		'images/pfps/pfp-rare.jpg',
-	];
-	//NEVER ROLL YOUR OWN CRYPTO
-	function selectRandomIndex(maxExclusive) {
-		if (!maxExclusive || maxExclusive <= 1) return 0;
-		if (window.crypto && window.crypto.getRandomValues) {
-			var rand = new Uint32Array(1);
-			window.crypto.getRandomValues(rand);
-			return rand[0] % maxExclusive;
-		}
-		return Math.floor(Math.random() * maxExclusive);
-	}
-
-	function setRandomProfilePic() {
-		var pfpEl = document.getElementById('profile-pic');
-		if (!pfpEl) return;
-		var pfp = potentialpfps[selectRandomIndex(potentialpfps.length)];
-		pfpEl.textContent = pfp;
-	}
-
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', setRandomProfilePic);
-	} else {
-		setRandomProfilePic();
-	}
-})();
