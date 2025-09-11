@@ -71,7 +71,7 @@
             </header>
 
             <nav class="toc">
-                <h3>Table of Contents</h3>
+                <h3>table of contents</h3>
                 <ul>
                     <li><a href="#section1">the problem</a></li>
                     <li><a href="#section2">solving the obfuscation</a></li>
@@ -167,7 +167,7 @@ func main() {
 </code></pre>
                     </div>
                     <p>
-                        a message is obfuscated through a series of character value shifts. Each character is shifted using a set of random key values, then hex-encoded, and finally mapped to emojis. while it hides the original text, it lacks actual cryptographic security.
+                        a message is obfuscated through a series of character value shifts. each character is shifted using a set of random key values, then hex-encoded, and finally mapped to emojis. while it hides the original text, it lacks actual cryptographic security.
                     </p>
                 </section>
 
@@ -200,7 +200,7 @@ print("recovered keys:", keys)
 print("flag:", flag_plaintext)</code></pre>
                     </div>
                     <p>
-                        firstly, we map the emojis back to their corresponding hex values. then, we convert the hex back into an intermediate "keyed" text. since we have that known plaintext example, we can determine the character shift values used in the encoding. with the keys, we subtract the shifts from the encoded flag text to determine the original message. The lack of cryptographic security makes this decryption easy, once the pattern is identified, reversing it is just a matter of applying character operations.
+                        firstly, we map the emojis back to their corresponding hex values. then, we convert the hex back into an intermediate "keyed" text. since we have that known plaintext example, we can determine the character shift values used in the encoding. with the keys, we subtract the shifts from the encoded flag text to determine the original message. the lack of cryptographic security makes this decryption easy, once the pattern is identified, reversing it is just a matter of applying character operations.
                     </p>
                 </section>
 
