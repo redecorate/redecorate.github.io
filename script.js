@@ -54,7 +54,7 @@
 	}
 
 	function setRandomProfilePic() {
-		var pfpEl = document.getElementById('footer-quote');
+		var pfpEl = document.getElementById('profile-pic');
 		if (!pfpEl) return;
 		var pfp = potentialpfps[selectRandomIndex(potentialpfps.length)];
 		pfpEl.textContent = pfp;
