@@ -2,12 +2,16 @@
 	'use strict';
 
 	var footerQuotes = [
-		'PICKING A RANDOM \"WANT TO BE\" TO BE \"SOMEBODY\"',
+		'PICKING A RANDOM *\"WANT TO BE\"* TO BE *\"SOMEBODY\"*',
 		"CLIPPINGS OF A MAGAZINE OF THINGS YOU SAID BUT DIDN'T MEAN",
 		'lying, conniving, thriving on hate, i\'ll tell you it was "all for you."',
-		"no use in trying to find friends 'cause in the end nobody sticks around",
+		"*(SINKING DOWN IN YOUR DEEP BLACK)*",
 		'fatalities, fallacies, sweet and sour, simmer, freeze',
 		'all five of my senses, unalive',
+		'STILL NO ENEMY TO FIGHT, *NOT IN THIS LIGHT*',
+		"a medicine i never swallowed right",
+		'*shame that overflows*, AND NEVER DISSIPATES',
+
 	];
 	//NEVER ROLL YOUR OWN CRYPTO
 	function selectRandomIndex(maxExclusive) {
@@ -24,12 +28,49 @@
 		var footerQuoteEl = document.getElementById('footer-quote');
 		if (!footerQuoteEl) return;
 		var quote = footerQuotes[selectRandomIndex(footerQuotes.length)];
-		footerQuoteEl.textContent = quote;
+		// Escape HTML to avoid injection, then convert *...* to <em>...</em>
+		function escapeHtml(s) {
+			return String(s)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#39;');
+		}
+
+		function formatItalics(text) {
+			// convert *text* (non-greedy) to <em>text</em>
+			// operate on escaped text so user content can't inject HTML
+			return text.replace(/\*(.+?)\*/g, function (_, inner) {
+				return '<em>' + inner + '</em>';
+			});
+		}
+
+		footerQuoteEl.innerHTML = formatItalics(escapeHtml(quote));
+	}
+
+	// Randomize profile picture from images/pfps/
+	var profilePics = [
+		'images/pfps/pfp.jpg',
+		'images/pfps/pfp-alt.jpg',
+		'images/pfps/pfp-rare.jpg'
+	];
+
+	function setRandomProfilePic() {
+		var img = document.querySelector('.profile-pic');
+		if (!img) return;
+		var choice = profilePics[selectRandomIndex(profilePics.length)];
+		img.src = choice;
+		if (!img.alt) img.alt = 'profile picture';
 	}
 
 	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', setRandomFooterQuote);
+		document.addEventListener('DOMContentLoaded', function () {
+			setRandomFooterQuote();
+			setRandomProfilePic();
+		});
 	} else {
 		setRandomFooterQuote();
+		setRandomProfilePic();
 	}
 })();
