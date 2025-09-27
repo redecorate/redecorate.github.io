@@ -28,7 +28,6 @@
 		var footerQuoteEl = document.getElementById('footer-quote');
 		if (!footerQuoteEl) return;
 		var quote = footerQuotes[selectRandomIndex(footerQuotes.length)];
-		// Escape HTML to avoid injection, then convert *...* to <em>...</em>
 		function escapeHtml(s) {
 			return String(s)
 				.replace(/&/g, '&amp;')
@@ -39,8 +38,6 @@
 		}
 
 		function formatItalics(text) {
-			// convert *text* (non-greedy) to <em>text</em>
-			// operate on escaped text so user content can't inject HTML
 			return text.replace(/\*(.+?)\*/g, function (_, inner) {
 				return '<em>' + inner + '</em>';
 			});
@@ -49,7 +46,6 @@
 		footerQuoteEl.innerHTML = formatItalics(escapeHtml(quote));
 	}
 
-	// Randomize profile picture from images/pfps/
 	var profilePics = [
 		'images/pfps/pfp.jpg',
 		'images/pfps/pfp-alt.jpg',
