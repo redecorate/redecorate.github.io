@@ -52,6 +52,18 @@
             .writeup-content h2 { font-size: 1.3rem; }
         }
 
+        .lang-icons {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lang-icon {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
         .token.comment { color: #6c7086; font-style: italic; }
         .token.keyword { color: #f5c2e7; }
         .token.string { color: #a6e3a1; }
@@ -70,14 +82,18 @@
             <header class="writeup-header">
                 <h1 class="writeup-title">Quickfish: VM detection without losing to modern windows</h1>
                 <div class="writeup-meta">
+                    <div class="meta-item">
                         <span class="lang-icons">
                             <img src="../images/c.svg" class="lang-icon" alt="C" title="C"/>
                             <img src="../images/cpp.svg" class="lang-icon" alt="C++" title="C++"/>
                             <img src="../images/windows.svg" class="lang-icon" alt="Windows" title="Windows"/>
                             <img src="../images/linux.svg" class="lang-icon" alt="Linux" title="Linux"/>
-                            <div class="meta-item"><span class="tag">v0.1.0-research</span></div>
                         </span>
-                </div>                    
+                    </div>
+                    <div class="meta-item">
+                        <span class="tag">v0.1.0-research</span>
+                    </div>
+                </div>
             </header>
 
             <nav class="toc">
