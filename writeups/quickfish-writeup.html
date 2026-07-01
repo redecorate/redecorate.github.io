@@ -70,12 +70,14 @@
             <header class="writeup-header">
                 <h1 class="writeup-title">Quickfish: VM detection without losing to modern windows</h1>
                 <div class="writeup-meta">
-                    <div class="meta-item"><span class="tag">c</span></div>
-                    <div class="meta-item"><span class="tag">c++</span></div>
-                    <div class="meta-item"><span class="tag">windows</span></div>
-                    <div class="meta-item"><span class="tag">linux</span></div>
-                    <div class="meta-item"><span class="tag">v0.1.0-research</span></div>
-                </div>
+                        <span class="lang-icons">
+                            <img src="../images/c.svg" class="lang-icon" alt="C" title="C"/>
+                            <img src="../images/cpp.svg" class="lang-icon" alt="C++" title="C++"/>
+                            <img src="../images/windows.svg" class="lang-icon" alt="Windows" title="Windows"/>
+                            <img src="../images/linux.svg" class="lang-icon" alt="Linux" title="Linux"/>
+                            <div class="meta-item"><span class="tag">v0.1.0-research</span></div>
+                        </span>
+                </div>                    
             </header>
 
             <nav class="toc">
@@ -249,7 +251,11 @@ Quicksand architectural layer
                         quickfish is small, but the research lesson is useful: vm detection is not just about finding a hypervisor. it is about context. modern systems blur the line between bare metal and virtualized execution, especially on windows where security features can intentionally route the system through hyper-v surfaces.
                     </p>
                     <p>
-                        the project is being released as <code>v0.1.0-research</code>. the next useful work is expanding the test matrix across vmware workstation, virtualbox, hyper-v guests, esxi, and qemu/kvm, then tuning the score based on real results instead of assumptions.
+                        the project is being released as
+                        <a href="https://github.com/redecorate/Quickfish" target="_blank" rel="noopener noreferrer"><code>v0.1.0-research</code></a>.
+                        the next useful work is expanding the test matrix across vmware workstation,
+                        virtualbox, hyper-v guests, esxi, and qemu/kvm, then tuning the score based
+                        on real results instead of assumptions.
                     </p>
                 </section>
             </article>
