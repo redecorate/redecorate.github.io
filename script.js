@@ -2,16 +2,9 @@
 	'use strict';
 
 	var footerQuotes = [
-		'PICKING A RANDOM *\"WANT TO BE\"* TO BE *\"SOMEBODY\"*',
 		"CLIPPINGS OF A MAGAZINE OF THINGS YOU SAID BUT DIDN'T MEAN",
-		'lying, conniving, thriving on hate, i\'ll tell you it was "all for you."',
-		"*(SINKING DOWN IN YOUR DEEP BLACK)*",
-		'fatalities, fallacies, sweet and sour, simmer, freeze',
-		'all five of my senses, unalive',
-		'STILL NO ENEMY TO FIGHT, *NOT IN THIS LIGHT*',
-		"a medicine i never swallowed right",
-		'*shame that overflows*, AND NEVER DISSIPATES',
-
+		'lying, conniving, thriving on hate',
+		'fatalities, fallacies, sweet and sour, simmer, freeze'
 	];
 	//NEVER ROLL YOUR OWN CRYPTO
 	function selectRandomIndex(maxExclusive) {
