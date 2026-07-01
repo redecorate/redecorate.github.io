@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css">
+    <title>quickfish research | redecorate.lol</title>
+    <style>
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #a6adc8;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover { color: #f5c2e7; text-decoration: underline; }
+
+        .writeup-header { text-align: left; border-bottom: 1px solid #313244; padding-bottom: 30px; margin-bottom: 40px; }
+        .writeup-title { font-size: 2rem; font-weight: 400; margin-bottom: 15px; color: #cdd6f4; }
+        .writeup-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.9rem; color: #7f849c; }
+        .meta-item { display: flex; align-items: center; gap: 8px; }
+        .tag { display: inline-block; padding: 2px 8px; border: 1px solid #45475a; border-radius: 999px; color: #a6adc8; background: #181825; font-size: 0.85rem; }
+
+        nav.toc { background: #181825; border: 1px solid #45475a; border-radius: 4px; padding: 20px; margin: 30px 0; }
+        nav.toc h3 { color: #cdd6f4; margin-bottom: 12px; font-size: 1.1rem; }
+        nav.toc ul { list-style: none; padding: 0; margin: 0; }
+        nav.toc li { margin-bottom: 8px; }
+        nav.toc a { color: #a6adc8; text-decoration: none; font-size: 0.95rem; }
+        nav.toc a:hover { color: #f5c2e7; text-decoration: underline; }
+
+        .writeup-content h2 { font-size: 1.4rem; font-weight: 500; margin: 40px 0 16px; color: #cdd6f4; padding-bottom: 8px; border-bottom: 1px solid #313244; }
+        .writeup-content h3 { font-size: 1.1rem; font-weight: 500; margin: 26px 0 12px; color: #cdd6f4; }
+        .writeup-content p { margin-bottom: 16px; color: #bac2de; line-height: 1.7; }
+        .writeup-content li { color: #bac2de; line-height: 1.6; margin-bottom: 6px; }
+        .writeup-content strong { color: #cdd6f4; }
+        .writeup-content code:not(pre code) { background: #181825; border: 1px solid #45475a; border-radius: 4px; padding: 1px 5px; color: #cdd6f4; }
+
+        .code-block { background: #181825; border: 1px solid #45475a; border-radius: 6px; margin: 16px 0; overflow: hidden; }
+        .code-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #313244; border-bottom: 1px solid #45475a; color: #a6adc8; font-size: 0.9rem; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; }
+        .code-block pre { margin: 0; padding: 16px; overflow-x: auto; color: #cdd6f4; }
+        .code-block code { font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; }
+
+        .note { border-left: 3px solid #89b4fa; background: #181825; padding: 14px 16px; margin: 20px 0; color: #bac2de; }
+        .note.warning { border-left-color: #fab387; }
+
+        .writeup-footer { margin-top: 50px; padding-top: 30px; border-top: 1px solid #313244; text-align: center; }
+        .writeup-footer p { font-size: 0.9rem; color: #7f849c; margin: 0; }
+
+        @media (max-width: 768px) {
+            .writeup-title { font-size: 1.6rem; }
+            .writeup-meta { flex-direction: column; gap: 8px; }
+            .writeup-content h2 { font-size: 1.3rem; }
+        }
+
+        .token.comment { color: #6c7086; font-style: italic; }
+        .token.keyword { color: #f5c2e7; }
+        .token.string { color: #a6e3a1; }
+        .token.number { color: #fab387; }
+        .token.function { color: #89b4fa; }
+        .token.type, .token.builtin { color: #f9e2af; }
+        .token.operator { color: #94e2d5; }
+        .token.punctuation { color: #9399b2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <main class="main">
+            <a href="../" class="back-link">← back to main site</a>
+
+            <header class="writeup-header">
+                <h1 class="writeup-title">quickfish: vm detection without losing to modern windows</h1>
+                <div class="writeup-meta">
+                    <div class="meta-item"><span class="tag">c</span></div>
+                    <div class="meta-item"><span class="tag">c++</span></div>
+                    <div class="meta-item"><span class="tag">windows</span></div>
+                    <div class="meta-item"><span class="tag">linux</span></div>
+                    <div class="meta-item"><span class="tag">v0.1.0-research</span></div>
+                </div>
+            </header>
+
+            <nav class="toc">
+                <h3>table of contents</h3>
+                <ul>
+                    <li><a href="#section1">the problem</a></li>
+                    <li><a href="#section2">research goal</a></li>
+                    <li><a href="#section3">architecture</a></li>
+                    <li><a href="#section4">scoring and false positives</a></li>
+                    <li><a href="#section5">testing on real hardware</a></li>
+                    <li><a href="#section6">limitations</a></li>
+                    <li><a href="#section7">afterword</a></li>
+                </ul>
+            </nav>
+
+            <article class="writeup-content">
+                <section id="section1">
+                    <h2>the problem</h2>
+                    <p>
+                        a lot of vm detection code is still written like the target is windows 7 in a basic virtualbox guest. check cpuid, look for a vendor string, maybe scan for vmware tools, and call it a day.
+                    </p>
+                    <p>
+                        the biggest issue is <code>Microsoft Hv</code>. on a real bare-metal windows machine, the hypervisor-present bit can still be exposed when features like vbs, hvci, wsl2, credential guard, windows sandbox, or the hyper-v platform are enabled. a cpuid-only detector sees a hypervisor and immediately calls the system a vm, even when its just a normal pc running windows security features.
+                    </p>
+                    <p>
+                        quickfish started from that problem: how do you collect useful vm and hypervisor signals without turning every hardened windows install into a false positive?
+                    </p>
+                </section>
+
+                <section id="section2">
+                    <h2>research goal</h2>
+                    <p>
+                        the goal was not to make a perfect vm oracle. that does not exist. the goal was to build a signal collector that separates weak, ambiguous signals from stronger, corroborated evidence.
+                    </p>
+                    <div class="note">
+                        quickfish treats detection as scoring, not truth.
+                    </div>
+                    <p>
+                        that means <code>Microsoft Hv</code> by itself is not enough. a missing tpm is not enough. a timing anomaly is not enough. but a hypervisor vendor plus firmware, device, registry, pci, or tool artifacts becomes much harder to explain away as normal bare metal.
+                    </p>
+                </section>
+
+                <section id="section3">
+                    <h2>architecture</h2>
+                    <p>
+                        quickfish is split into three parts. the split matters because the first draft had overlap between the environment checks and cpu-level checks, which caused the same evidence to be counted twice.
+                    </p>
+                    <ul>
+                        <li><strong>nofish.h</strong> handles the environment layer: firmware, bios, acpi, dmi, pci, tpm, registry, file, gpu, audio, and install-age checks.</li>
+                        <li><strong>Quicksand.h</strong> handles the architectural layer: cpuid hypervisor vendor detection, cpuid trap-timing ratio checks, and the optional vmware backdoor probe.</li>
+                        <li><strong>nofish_quicksand.h</strong> combines the two layers and normalizes the result into one score.</li>
+                    </ul>
+                    <div class="code-block">
+                        <div class="code-header">quickfish usage</div>
+                        <pre><code class="language-cpp">#define NOFISH_QUICKSAND_IMPLEMENTATION
+#include "nofish_quicksand.h"
+
+#include &lt;iostream&gt;
+
+int main() {
+    auto result = NofishQuicksand::Detect();
+
+    std::cout &lt;&lt; "is_vm: " &lt;&lt; result.is_vm &lt;&lt; "\n";
+    std::cout &lt;&lt; "combined score: " &lt;&lt; result.combinedScore &lt;&lt; "\n";
+    std::cout &lt;&lt; "confidence: " &lt;&lt; result.confidence &lt;&lt; "\n";
+    std::cout &lt;&lt; "reasons: " &lt;&lt; result.reasons &lt;&lt; "\n";
+
+    if (result.is_vm == 2) {
+        std::cout &lt;&lt; "VM confirmed\n";
+    } else if (result.is_vm == 1) {
+        std::cout &lt;&lt; "VM likely\n";
+    } else {
+        std::cout &lt;&lt; "No strong VM indicators found\n";
+    }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section id="section4">
+                    <h2>scoring and false positives</h2>
+                    <p>
+                        the most important tuning decision was handling hyper-v. non-microsoft hypervisor vendors are usually strong evidence. vmware, virtualbox, kvm, xen, and parallels are not normal bare-metal cpuid identities. hyper-v is different because microsoft uses the same architectural surface for both real guests and windows security features running on bare metal.
+                    </p>
+                    <p>
+                        because of that, quickfish treats <code>Microsoft Hv</code> as a soft signal unless the environment layer finds corroborating evidence. the cpuid trap-timing check is also ignored for hyper-v bare-metal scoring unless other vm artifacts exist.
+                    </p>
+                    <div class="code-block">
+                        <div class="code-header">scoring idea</div>
+                        <pre><code class="language-cpp">if (vendor == HVV::HyperV) {
+    // soft signal: VBS/HVCI/WSL2 can expose Microsoft Hv on bare metal
+    score += 5;
+
+    // timing anomalies alone do not confirm a Hyper-V guest
+    if (timing_anomaly && environment_score == 0)
+        keep_as_soft_signal();
+} else if (vendor != HVV::None) {
+    // VMware, VirtualBox, KVM, Xen, Parallels, etc.
+    score += 30;
+}</code></pre>
+                    </div>
+                    <p>
+                        another false positive came from display devices. the first pass matched the word <code>Virtual</code> in gpu names, which caught things like <code>Meta Virtual Monitor</code>. that was too broad, so the match list was narrowed to specific vm display adapters instead of generic virtual display software.
+                    </p>
+                    <p>
+                        tpm detection was also softened. a missing or inaccessible tpm can happen on real systems, so quickfish records it but does not score it as vm evidence by itself.
+                    </p>
+                </section>
+
+                <section id="section5">
+                    <h2>testing on real hardware</h2>
+                    <p>
+                        the first useful test was a real windows pc that exposed <code>Microsoft Hv</code>. the old aggressive scoring path flagged it as suspicious. after tuning, the same system correctly returned no strong vm indicators.
+                    </p>
+                    <div class="code-block">
+                        <div class="code-header">real windows bare-metal test</div>
+                        <pre><code class="language-text">PS&gt; .\quickfish_probe.exe
+Build/platform
+  OS macro: Windows
+  Arch macro: x86
+  Compiler: MSVC 1944
+
+quickfish result
+  is_vm: 0 (no_strong_indicators)
+  combined_score: 5
+  confidence: 5
+  environment_score: 0
+  architectural_score: 5
+  reasons: CPUID hypervisor vendor: hyperv (soft signal: Hyper-V/VBS can appear on bare metal)
+
+nofish environment layer
+  is_vm: 0
+  confidence: 0
+  reasons: no indicators found
+
+Quicksand architectural layer
+  vendor: hyperv
+  cpuid_vendor_present: true
+  cpuid_trap_ratio: 43.94
+  cpuid_trap_threshold: 75.00
+  cpuid_trap_ratio_anomaly: false
+  vmware_backdoor_confirmed: false
+  raw_arch_score: 30</code></pre>
+                    </div>
+                    <p>
+                        this is the behavior i wanted: quickfish still reports the hyper-v architectural signal, but it does not pretend that signal alone proves the machine is a guest vm.
+                    </p>
+                </section>
+
+                <section id="section6">
+                    <h2>limitations</h2>
+                    <p>
+                        quickfish is a research preview, not a production security boundary. false positives and false negatives are expected. if a hypervisor tries hard enough to hide, client-side detection can be bypassed. if a real machine has enough weird drivers and platform features enabled, it can look suspicious.
+                    </p>
+                    <p>
+                        the hardest case is still hyper-v guest vs windows bare metal with vbs. both can expose <code>Microsoft Hv</code>, so the decision has to come from corroborating environment evidence rather than cpuid alone.
+                    </p>
+                    <ul>
+                        <li>windows and linux x86/x64 are the main targets.</li>
+                        <li>linux arm64 is partial: environment checks can work, x86 cpuid/rdtsc checks become no-op.</li>
+                        <li>macos and bsd are not officially supported.</li>
+                        <li>results should be treated as telemetry, not authorization.</li>
+                    </ul>
+                    <div class="note warning">
+                        quickfish is intended for defensive research, lab classification, compatibility testing, anti-fraud research, and vm/hypervisor study. it should not be used to hide malware, evade sandboxes, or perform unauthorized activity.
+                    </div>
+                </section>
+
+                <section id="section7">
+                    <h2>afterword</h2>
+                    <p>
+                        quickfish is small, but the research lesson is useful: vm detection is not just about finding a hypervisor. it is about context. modern systems blur the line between bare metal and virtualized execution, especially on windows where security features can intentionally route the system through hyper-v surfaces.
+                    </p>
+                    <p>
+                        the project is being released as <code>v0.1.0-research</code>. the next useful work is expanding the test matrix across vmware workstation, virtualbox, hyper-v guests, esxi, and qemu/kvm, then tuning the score based on real results instead of assumptions.
+                    </p>
+                </section>
+            </article>
+
+            <footer class="writeup-footer">
+                <p><strong>disclaimer:</strong> this writeup is for educational and defensive research purposes only.</p>
+            </footer>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-bottom">
+                    <a href="../" class="back-link">← back to main site</a>
+                    <div class="footer-bottom-inner">
+                        <div class="copyright-line">
+                            <p>&copy; 2026 redecorate.lol</p>
+                            <p>Quickfish writeup - v0.1.0-research</p>
+                        </div>
+                        <p id="footer-quote"></p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
+<script src="../script.js" defer></script>
+<script>
+(function(){
+    function htmlEscape(s){
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,'&gt;');
+    }
+
+    function protect(text, regex, type, placeholders){
+        return text.replace(regex, function(m){
+            var id = placeholders.length;
+            placeholders.push('<span class="token ' + type + '">' + htmlEscape(m) + '</span>');
+            return '___PLACEHOLDER_'+id+'___';
+        });
+    }
+
+    function restorePlaceholders(s, placeholders){
+        return s.replace(/___PLACEHOLDER_(\d+)___/g, function(_, i){ return placeholders[Number(i)] || _; });
+    }
+
+    function wrapWords(s, words, cls){
+        if (!words.length) return s;
+        var pattern = new RegExp('\\b(' + words.map(function(w){return w.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');}).join('|') + ')\\b', 'g');
+        return s.replace(pattern, '<span class="token ' + cls + '">$1</span>');
+    }
+
+    function highlightCpp(src){
+        var placeholders = [];
+        var t = src;
+        t = protect(t, /\/\*[\s\S]*?\*\//g, 'comment', placeholders);
+        t = protect(t, /\/\/.*$/gm, 'comment', placeholders);
+        t = protect(t, /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])+'/g, 'string', placeholders);
+
+        var e = htmlEscape(t);
+        e = wrapWords(e, [
+            'alignas','alignof','and','asm','auto','bool','break','case','catch','char','class','const','constexpr','continue','decltype','default','delete','do','double','else','enum','explicit','extern','false','float','for','friend','if','inline','int','long','namespace','new','noexcept','nullptr','operator','private','protected','public','return','short','signed','sizeof','static','struct','switch','template','this','throw','true','try','typedef','typename','union','unsigned','using','virtual','void','volatile','while'
+        ], 'keyword');
+        e = wrapWords(e, ['uint32_t','uint64_t','size_t','std','HVV'], 'type');
+        e = e.replace(/\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?(?:e[+\-]?\d+)?)\b/g, '<span class="token number">$1</span>');
+        e = e.replace(/\b([A-Za-z_]\w*)\s*(?=\()/g, '<span class="token function">$1</span>');
+        return restorePlaceholders(e, placeholders);
+    }
+
+    function highlightElement(code){
+        var lang = '';
+        for (var i=0;i<code.classList.length;i++){
+            var cls = code.classList[i];
+            if (cls.indexOf('language-') === 0) { lang = cls.slice(9); break; }
+        }
+        var src = code.textContent;
+        var out = src;
+        if (lang === 'cpp' || lang === 'c++' || lang === 'c' || lang === 'h') out = highlightCpp(src);
+        else out = htmlEscape(src);
+        code.innerHTML = out;
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){
+            document.querySelectorAll('.code-block pre code').forEach(highlightElement);
+        });
+    } else {
+        document.querySelectorAll('.code-block pre code').forEach(highlightElement);
+    }
+})();
+</script>
+</html>
