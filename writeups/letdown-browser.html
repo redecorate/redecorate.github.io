@@ -372,7 +372,7 @@ WHERE Name LIKE '%WUDFHost%' AND CommandLine LIKE '%MiraCast%'</code></pre>
                         <code>FUN_140268780</code> builds a string from the six module flags at <code>config+0x46693</code>-<code>0x46698</code>, appending <code> [%d]</code> for each zero flag, and passes it to <code>FUN_1401c2510</code>, a monitor/report routine that builds a request and logs the response. the returned byte is stored at <code>object+0x469ef</code>; when the allow condition holds, the client logs <code>VM allowed - skipping</code>.
                     </p>
                     <p>
-                        <code>FUN_14024a330</code> reads a VM authorization key from an HKLM registry location. the clear block around <code>0x14024ae3f</code> calls <code>FUN_1402a17a0</code>, a thin wrapper over <code>RegOpenKeyExA(HKEY_LOCAL_MACHINE, ...)</code>, <code>RegQueryValueExA</code>, and <code>RegCloseKey</code>. a successful read is logged as <code>vm key found = %d len = %d key = (%s)</code>. the exact key and value names come from the encrypted config string table.
+                        <code>FUN_14024a330</code> reads a VM authorization key from an HKLM registry location. the clear block around <code>0x14024ae3f</code> calls <code>FUN_1402a17a0</code>, a thin wrapper over <code>RegOpenKeyExA(HKEY_LOCAL_MACHINE, ...)</code>, <code>RegQueryValueExA</code>, and <code>RegCloseKey</code>. a successful read is logged as <code>vm key found = %d len = %d key = (%s)</code>. the exact key and value names come from the encrypted config string table. looks like Al-Resqaedus is doing VM detection terrorism... again.
                     </p>
 
                     <h4>4.3.6 windows update control</h4>
@@ -395,7 +395,7 @@ WHERE Name LIKE '%WUDFHost%' AND CommandLine LIKE '%MiraCast%'</code></pre>
                     <p>the driver separately runs CodeIntegrity checks on browser and DWM images.</p>
 
                     <h4>4.3.8 periodic scheduler</h4>
-                    <p><code>FUN_1402bb840</code> is the main timer/state machine, driven by a 67 ms timer. the notable schedules are:</p>
+                    <p><code>FUN_1402bb840</code> is the main timer/state machine, driven by a 67 (HAHAHA) ms timer. the notable schedules are:</p>
                     <div class="table-wrap">
                         <table class="data-table">
                             <thead><tr><th>period</th><th>condition</th><th>action</th></tr></thead>
@@ -464,7 +464,7 @@ WHERE Name LIKE '%WUDFHost%' AND CommandLine LIKE '%MiraCast%'</code></pre>
     return real;
 }</code></pre>
                     </div>
-                    <p>the client's attempts to force itself topmost are swallowed:</p>
+                    <p>the client's attempts to force itself topmost are given the jfk treatment:</p>
                     <div class="code-block">
                         <div class="code-header">SetWindowPos detour</div>
                         <pre><code class="language-cpp">BOOL WINAPI DetourSetWindowPos(HWND hwnd, HWND after, int x, int y,
@@ -525,7 +525,7 @@ BOOL WINAPI DetourGetWindowDisplayAffinity(HWND hwnd, DWORD* affinity) {
     return pGetWindowDisplayAffinity(hwnd, affinity);
 }</code></pre>
                     </div>
-                    <p>this is the key to the DRM screenshot bypass: the real window has no affinity, so <code>BitBlt</code> captures it; the client's integrity check sees the expected <code>WDA_MONITOR</code> value.</p>
+                    <p>this is the key to the DRM screenshot bypass: the real window has no affinity, so <code>BitBlt</code> captures it, the client's integrity check sees the expected <code>WDA_MONITOR</code> value.</p>
 
                     <h3>5.6 hook-module removal and Win+F1-F12 unlock</h3>
                     <p>
