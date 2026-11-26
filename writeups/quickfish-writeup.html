@@ -77,8 +77,6 @@
 <body>
     <div class="container">
         <main class="main">
-            <a href="../" class="back-link">← back to main site</a>
-
             <header class="writeup-header">
                 <h1 class="writeup-title">Quickfish: VM detection without losing to modern windows</h1>
                 <div class="writeup-meta">
@@ -128,9 +126,6 @@
                     <p>
                         the goal was not to make a perfect vm oracle. that does not exist. the goal was to build a signal collector that separates weak, ambiguous signals from stronger, corroborated evidence.
                     </p>
-                    <div class="note">
-                        quickfish treats detection as scoring, not truth.
-                    </div>
                     <p>
                         that means <code>Microsoft Hv</code> by itself is not enough. a missing tpm is not enough. a timing anomaly is not enough. but a hypervisor vendor plus firmware, device, registry, pci, or tool artifacts becomes much harder to explain away as normal bare metal.
                     </p>
@@ -254,11 +249,7 @@ Quicksand architectural layer
                         <li>windows and linux x86/x64 are the main targets.</li>
                         <li>linux arm64 is partial: environment checks can work, x86 cpuid/rdtsc checks become no-op.</li>
                         <li>macos and bsd are not officially supported.</li>
-                        <li>results should be treated as telemetry, not authorization.</li>
                     </ul>
-                    <div class="note warning">
-                        quickfish is intended for defensive research, lab classification, compatibility testing, anti-fraud research, and vm/hypervisor study. it should not be used to hide malware, evade sandboxes, or perform unauthorized activity.
-                    </div>
                 </section>
 
                 <section id="section7">
@@ -287,7 +278,7 @@ Quicksand architectural layer
                     <a href="../" class="back-link">← back to main site</a>
                     <div class="footer-bottom-inner">
                         <div class="copyright-line">
-                            <p>&copy; 2026 redecorate.github.io</p>
+                            <p>&copy; 2026 redecorate.dev</p>
                             <p>Quickfish writeup - v0.1.0-research</p>
                         </div>
                         <p id="footer-quote"></p>

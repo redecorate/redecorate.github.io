@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="reverse engineering and bypassing Respondus LockDown Browser 2.1.6.02">
+    <link rel="stylesheet" href="../style.css">
+    <title>Respondus? you mean response-less? - redecorate</title>
+    <style>
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #a6adc8;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover { color: #f5c2e7; text-decoration: underline; }
+
+        .writeup-header { text-align: left; border-bottom: 1px solid #313244; padding-bottom: 30px; margin-bottom: 40px; }
+        .writeup-title { font-size: 2rem; font-weight: 400; margin-bottom: 12px; color: #cdd6f4; line-height: 1.2; }
+        .writeup-subtitle { font-size: 0.98rem; color: #a6adc8; margin: 0 0 18px; line-height: 1.6; }
+        .writeup-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.9rem; color: #7f849c; align-items: center; }
+        .meta-item { display: flex; align-items: center; gap: 8px; }
+        .tag { display: inline-block; padding: 2px 8px; border: 1px solid #45475a; border-radius: 999px; color: #a6adc8; background: #181825; font-size: 0.85rem; }
+
+        nav.toc { background: #181825; border: 1px solid #45475a; border-radius: 4px; padding: 20px; margin: 30px 0; }
+        nav.toc h3 { color: #cdd6f4; margin-bottom: 12px; font-size: 1.1rem; }
+        nav.toc ul { list-style: none; padding: 0; margin: 0; }
+        nav.toc li { margin-bottom: 8px; }
+        nav.toc a { color: #a6adc8; text-decoration: none; font-size: 0.95rem; }
+        nav.toc a:hover { color: #f5c2e7; text-decoration: underline; }
+
+        .writeup-content h2 { font-size: 1.4rem; font-weight: 500; margin: 40px 0 16px; color: #cdd6f4; padding-bottom: 8px; border-bottom: 1px solid #313244; }
+        .writeup-content h3 { font-size: 1.1rem; font-weight: 500; margin: 26px 0 12px; color: #cdd6f4; }
+        .writeup-content h4 { font-size: 1rem; font-weight: 500; margin: 20px 0 10px; color: #cdd6f4; }
+        .writeup-content p { margin-bottom: 16px; color: #bac2de; line-height: 1.7; }
+        .writeup-content li { color: #bac2de; line-height: 1.6; margin-bottom: 6px; }
+        .writeup-content strong { color: #cdd6f4; }
+        .writeup-content code:not(pre code) { background: #181825; border: 1px solid #45475a; border-radius: 4px; padding: 1px 5px; color: #cdd6f4; }
+
+        .code-block { background: #181825; border: 1px solid #45475a; border-radius: 6px; margin: 16px 0; overflow: hidden; }
+        .code-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #313244; border-bottom: 1px solid #45475a; color: #a6adc8; font-size: 0.9rem; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; }
+        .code-block pre { margin: 0; padding: 16px; overflow-x: auto; color: #cdd6f4; }
+        .code-block code { font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; }
+
+        .note { border-left: 3px solid #89b4fa; background: #181825; padding: 14px 16px; margin: 20px 0; color: #bac2de; }
+        .note strong { color: #cdd6f4; }
+        .note.warning { border-left-color: #fab387; }
+
+        .table-wrap { overflow-x: auto; margin: 16px 0; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; line-height: 1.45; }
+        .data-table th, .data-table td { border: 1px solid #45475a; padding: 7px 9px; vertical-align: top; text-align: left; }
+        .data-table th { background: #313244; color: #cdd6f4; font-weight: 500; }
+        .data-table td { color: #bac2de; }
+        .data-table code { background: transparent; border: none; padding: 0; color: #cdd6f4; }
+
+        .writeup-footer { margin-top: 50px; padding-top: 30px; border-top: 1px solid #313244; text-align: center; }
+        .writeup-footer p { font-size: 0.9rem; color: #7f849c; margin: 0; }
+
+        .lang-icons { display: inline-flex; align-items: center; gap: 10px; }
+        .lang-icon { width: 20px; height: 20px; vertical-align: middle; }
+
+        .token.comment { color: #6c7086; font-style: italic; }
+        .token.keyword { color: #f5c2e7; }
+        .token.string { color: #a6e3a1; }
+        .token.number { color: #fab387; }
+        .token.function { color: #89b4fa; }
+        .token.type, .token.builtin { color: #f9e2af; }
+        .token.operator { color: #94e2d5; }
+        .token.punctuation { color: #9399b2; }
+
+        @media (max-width: 768px) {
+            .writeup-title { font-size: 1.6rem; }
+            .writeup-meta { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .writeup-content h2 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <main class="main">
+            <header class="writeup-header">
+                <h1 class="writeup-title">Respondus? you mean response-less?</h1>
+                <p class="writeup-subtitle">reverse engineering and bypassing "lockdown" browser 2.1.6.02</p>
+                <div class="writeup-meta">
+                    <div class="meta-item">
+                        <span class="lang-icons">
+                            <img src="../images/cpp.svg" class="lang-icon" alt="C++" title="C++"/>
+                            <img src="../images/windows.svg" class="lang-icon" alt="Windows" title="Windows"/>
+                            <img src="../images/python-icon.svg" class="lang-icon" alt="Python" title="Python"/>
+                        </span>
+                    </div>
+                    <div class="meta-item"><span class="tag">v2.1.6.02-research</span></div>
+                </div>
+            </header>
+
+            <nav class="toc">
+                <h3>table of contents</h3>
+                <ul>
+                    <li><a href="#section1">1. introduction</a></li>
+                    <li><a href="#section2">2. background</a></li>
+                    <li><a href="#section3">3. methodology</a></li>
+                    <li><a href="#section4">4. static analysis</a></li>
+                    <li><a href="#section5">5. bypass design</a></li>
+                    <li><a href="#section6">6. evaluation</a></li>
+                    <li><a href="#section7">7. conclusion</a></li>
+                    <li><a href="#appendix-a">appendix a - function map</a></li>
+                    <li><a href="#appendix-b">appendix b - driver protocol</a></li>
+                    <li><a href="#appendix-c">appendix c - hook targets</a></li>
+                </ul>
+            </nav>
+
+            <article class="writeup-content">
+                <section id="section1">
+                    <h2>1. introduction</h2>
+                    <p>
+                        "lockdown browser" is a funny name for a chromium fork that installs a kernel driver, hooks your keyboard, and then gets upset when you notice. Respondus LockDown Browser 2.1.6.02 is a 64-bit Windows client made of four pieces: a CEF browser, a kernel driver, a user-mode hook module, and a remote exam service. the browser is the part you see. the driver and the hook module are the parts that make the browser feel less like a browser and more like 1984.
+                    </p>
+
+                </section>
+
+                <section id="section2">
+                    <h2>2. background</h2>
+                    <h3>2.1 product architecture</h3>
+                    <p>the installed product contains three relevant components:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>component</th><th>role</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>LockDownBrowser.exe</code></td><td>CEF browser, policy engine, environment scans, UI, driver client</td></tr>
+                                <tr><td><code>LockDownBrowser.dll</code></td><td>hook module loaded by the main executable; owns global keyboard, mouse, and shell hooks</td></tr>
+                                <tr><td><code>LockDownService215.sys</code></td><td>kernel driver; process/image/thread telemetry and a minifilter communication port</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        the main executable talks to the driver over <code>\ApDriverPort</code>. the driver accepts a client only if the connecting process image matches one of two expected browser paths and passes an Authenticode check. after the handshake, the two sides exchange encrypted messages: process lists, image lists, process records, thread fileless-execution states, and unsolicited process/image notifications.
+                    </p>
+                    <p>
+                        the hook module is statically imported by the main executable. it exposes four C++-decorated exports: <code>CLDBDoSomeOtherStuff</code> (keyboard only), <code>CLDBDoSomeOtherStuffs</code> (hook-status query), <code>CLDBDoSomeStuff</code> (keyboard + shell + mouse), and <code>CLDBDoYetMoreStuff</code> (mouse reinstall). the driver's minifilter is not a file-system filter in the usual sense; it registers a 0x70-byte <code>FLT_REGISTRATION</code> with no operation-registration array and uses the filter only to host the communication port.
+                    </p>
+                    <h3>2.2 windows mechanisms in play</h3>
+                    <p>the client leans on a fairly small set of documented windows surfaces:</p>
+                    <ul>
+                        <li><strong>input:</strong> <code>WH_KEYBOARD_LL</code>, <code>WH_MOUSE</code>, and <code>WH_SHELL</code> hooks installed with a module handle and thread id zero;</li>
+                        <li><strong>windows:</strong> <code>GetForegroundWindow</code>, <code>SetForegroundWindow</code>, <code>BringWindowToTop</code>, <code>SetWindowPos</code>, and <code>SetFocus</code>;</li>
+                        <li><strong>clipboard:</strong> <code>AddClipboardFormatListener</code>, <code>OpenClipboard</code>, <code>EmptyClipboard</code>, and <code>SetClipboardData</code>;</li>
+                        <li><strong>capture protection:</strong> <code>SetWindowDisplayAffinity(hwnd, WDA_MONITOR)</code> and the matching <code>GetWindowDisplayAffinity</code> check;</li>
+                        <li><strong>enumeration:</strong> <code>OpenProcess</code>, <code>K32EnumProcesses</code>, <code>K32EnumProcessModules</code>, <code>K32GetModuleFileNameExA/W</code>, and version resources;</li>
+                        <li><strong>devices:</strong> setupapi and WMI against <code>ROOT\CIMV2</code>;</li>
+                        <li><strong>services:</strong> the <code>wuauserv</code> control path;</li>
+                        <li><strong>signatures:</strong> <code>WinVerifyTrust</code> and the catalog APIs.</li>
+                    </ul>
+                </section>
+
+                <section id="section3">
+                    <h2>3. methodology</h2>
+                    <p>
+                        the target was <code>LockDownBrowser.exe</code> 2.1.6.02, 64-bit, image base <code>0x140000000</code>, SHA-256 starting <code>86f39c5a...</code>. the driver and hook module came from the same installed copy.
+                    </p>
+                    <p>
+                        static analysis was mostly ghidra (thank you NSA). three things made it fucking re*****d to work with. first, large parts of the main executable are flattened by MetaFortress, linear disassembly desynchronizes and ghidra function bodies often stop at the first flattened branch. second, the PE parser used by ghidra truncates the <code>.pdata</code> exception directory. reading <code>.pdata</code> directly from the file produced 21,325 usable entries covering 95.9% of <code>.text</code>. third, many string references land in <code>.pdata</code> ranges that were never defined as functions.
+                    </p>
+                    <p>
+                        the workarounds were mechanical: a one-pass capstone index of RIP-relative string references, a one-pass import-reference index (9,370 call/jump sites, holy moly respondus, compensating for somethin?), a raw <code>.pdata</code>-bounded function summarizer, and a targeted range disassembler for rebuilding obfuscated blocks. when a flattened function still ended early, the block was reconstructed with capstone instead of trusting the decompiler.
+                    </p>
+                </section>
+
+                <section id="section4">
+                    <h2>4. static analysis</h2>
+
+                    <h3>4.1 the driver</h3>
+                    <p>the driver creates six singleton objects:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>global</th><th>object</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>DAT_14000f080</code></td><td>process monitor</td></tr>
+                                <tr><td><code>DAT_14000f088</code></td><td>image monitor</td></tr>
+                                <tr><td><code>DAT_14000f090</code></td><td>thread monitor</td></tr>
+                                <tr><td><code>DAT_14000f0a8</code></td><td>code-integrity helper</td></tr>
+                                <tr><td><code>DAT_14000f0b0</code></td><td>communication-port singleton</td></tr>
+                                <tr><td><code>DAT_14000f098</code></td><td>driver logger</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        the port is <code>\ApDriverPort</code>. the connect callback accepts a PID only when the process image matches one of two <code>\Device\BootDevice</code>-relative browser paths and the image passes Authenticode validation. the accepted PID is stored in the image monitor; everything else gets <code>STATUS_ACCESS_DENIED</code> (<code>0xC0000022</code>).
+                    </p>
+
+                    <h4>4.1.1 message protocol</h4>
+                    <p>the protocol has a plain form and a secure form. the secure form uses an RSA-2048 OAEP (SHA-256) encrypted 16-byte AES IV followed by AES-256-CBC (PKCS#7) ciphertext. the handshake is:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>opcode</th><th>meaning</th></tr></thead>
+                            <tbody>
+                                <tr><td>0</td><td>return the driver's RSA-2048 public key</td></tr>
+                                <tr><td>1</td><td>import the client's RSA public key</td></tr>
+                                <tr><td>2</td><td>set the AES-256 session key</td></tr>
+                                <tr><td>3</td><td>secure envelope; recursively dispatch the inner opcode</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>queries:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>opcode</th><th>reply</th><th>body</th></tr></thead>
+                            <tbody>
+                                <tr><td>4</td><td>5</td><td>process list (<code>count * 0xF0C</code> records)</td></tr>
+                                <tr><td>6</td><td>7</td><td>browser-process image list (<code>count * 0x710</code>)</td></tr>
+                                <tr><td>8</td><td>9</td><td>DWM-process image list (<code>count * 0x710</code>)</td></tr>
+                                <tr><td>0xC</td><td>-</td><td>one 0xF0C process record for a PID</td></tr>
+                                <tr><td>0xD</td><td>0xE</td><td>PID list</td></tr>
+                                <tr><td>0xF</td><td>0x10</td><td>two thread-check states (browser, DWM)</td></tr>
+                                <tr><td>0x11</td><td>0x12</td><td><code>smss.exe</code> presence and system boot time</td></tr>
+                                <tr><td>0x13</td><td>-</td><td>set a per-connection notification flag</td></tr>
+                                <tr><td>0x14</td><td>0x15</td><td>verify fileless execution of a TID list</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>unsolicited notifications go the other way:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>opcode</th><th>body</th></tr></thead>
+                            <tbody>
+                                <tr><td>0xA</td><td><code>BYTE reason</code> (1 = created, 0 = exited) + 0xF0C process record</td></tr>
+                                <tr><td>0xB</td><td>one 0x710 image record</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4>4.1.2 record layouts</h4>
+                    <p>the process record is 0xF0C bytes:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>offset</th><th>size</th><th>field</th></tr></thead>
+                            <tbody>
+                                <tr><td>0x000</td><td>4</td><td>PID</td></tr>
+                                <tr><td>0x004</td><td>0x208</td><td>image path, UTF-16 (260 wide chars)</td></tr>
+                                <tr><td>0x20C</td><td>0x800</td><td>command line from the PEB</td></tr>
+                                <tr><td>0xA0C</td><td>0x100</td><td>company name</td></tr>
+                                <tr><td>0xB0C</td><td>0x100</td><td>product name</td></tr>
+                                <tr><td>0xC0C</td><td>0x100</td><td>file description</td></tr>
+                                <tr><td>0xD0C</td><td>0x200</td><td>owner SID string</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>the image record is 0x710 bytes:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>offset</th><th>size</th><th>field</th></tr></thead>
+                            <tbody>
+                                <tr><td>0x000</td><td>4</td><td>table index</td></tr>
+                                <tr><td>0x004</td><td>0x208</td><td>image path</td></tr>
+                                <tr><td>0x20C</td><td>4</td><td>code-integrity state (signed result / owner adjustment)</td></tr>
+                                <tr><td>0x210</td><td>0x100</td><td>company name</td></tr>
+                                <tr><td>0x310</td><td>0x100</td><td>product name</td></tr>
+                                <tr><td>0x410</td><td>0x100</td><td>file description</td></tr>
+                                <tr><td>0x510</td><td>0x200</td><td>owner SID string</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4>4.1.3 monitors</h4>
+                    <p>
+                        the process monitor seeds itself with <code>ZwQuerySystemInformation(SystemProcessInformation)</code> and then registers <code>PsSetCreateProcessNotifyRoutineEx</code>. on create it builds a 0xF0C record, including the PEB command line via <code>KeStackAttachProcess</code>, version strings, and the owner SID via <code>ZwQuerySecurityObject</code>; on exit it emits the cached record with reason 0.
+                    </p>
+                    <p>
+                        the thread monitor registers <code>PsSetCreateThreadNotifyRoutine</code>. for browser and DWM PIDs it gets the thread start address with <code>ZwQueryInformationThread(ThreadQuerySetWin32StartAddress)</code>, queries the containing region with <code>ZwQueryVirtualMemory(MemoryBasicInformation)</code>, and marks unmapped or MZ-less start addresses as fileless code.
+                    </p>
+                    <p>
+                        the image monitor registers <code>PsSetLoadImageNotifyRoutine</code> and tracks images loaded by the browser and by <code>dwm.exe</code>. each image is recorded as a 0x710 record with signature/owner analysis and sent immediately. the driver also locates <code>smss.exe</code>, checks its presence and startup time, and exposes the system boot time. these are the anti-VM/anti-sandbox signals.
+                    </p>
+
+                    <h3>4.2 the hook module</h3>
+                    <p>
+                        four exports, two of them relevant to input. <code>CLDBDoSomeOtherStuff</code> installs a keyboard-only hook; <code>CLDBDoSomeStuff</code> installs keyboard, shell, and mouse hooks. the flags select the keyboard procedure:
+                    </p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>flags</th><th>keyboard proc</th><th>behavior</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>0x8000</code></td><td>0x16F0</td><td>block Ctrl+Esc, Alt+Tab, Ctrl+K, Win keys, injected keys</td></tr>
+                                <tr><td><code>0x0200</code></td><td>0x17C0</td><td>restrictive whitelist; blocks most keys except an allowed set</td></tr>
+                                <tr><td><code>0x0100</code></td><td>0x14A0</td><td>block Ctrl+Esc, Alt+Tab, Ctrl+K, Win keys; synthesize Win-key up</td></tr>
+                                <tr><td><code>0x4000</code> (no 0x100/0x200/0x8000)</td><td>0x13A0</td><td>block Alt+Tab, Ctrl+Esc, Ctrl+K, Win keys</td></tr>
+                                <tr><td>else</td><td>0x18E0</td><td>block Alt+Tab, Ctrl+Esc, Ctrl+K, Win keys, injected keys</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        mouse procedures block X-button and non-client button events; the 0x1AD0 variant additionally blocks right-button events 0x204-0x206. the shell procedure swallows <code>HSHELL_TASKMAN</code> (7) and <code>HSHELL_APPCOMMAND</code> (12).
+                    </p>
+                    <p>
+                        the main executable uses two installers. <code>FUN_14023af60</code> calls <code>CLDBDoSomeStuff</code> with <code>0x40</code>, <code>0x140</code>, <code>0x4040</code>, and <code>0x2240</code>. the <code>0x2240</code> set (<code>0x2000 | 0x200 | 0x40</code>) is selected when application state has <code>+0x480 == 0x51</code> and <code>+0x12dc == 0x69</code>. <code>FUN_14023bc50</code> calls <code>CLDBDoSomeOtherStuff</code> with <code>0x40</code>, <code>0x140</code>, <code>0x4040</code>, and <code>0x240</code>. the hook module keeps its <code>HHOOK</code>s at <code>LockDownBrowser.dll+0x1c000</code>, <code>+0x1c008</code>, and <code>+0x1c010</code>.
+                    </p>
+
+                    <h3>4.3 the main executable</h3>
+                    <h4>4.3.1 process and module scanning</h4>
+                    <p>
+                        the central scan is <code>FUN_14022ab00</code> (0x14022ab00-0x14022d3ce). it runs during initialization and periodically. it deletes the <code>Debugger</code> value under <code>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\utilman.exe</code>, walks a <code>ProcessListPSAPI</code> snapshot, and matches process names and paths against policy lists. the names worth knowing are <code>MiraCast</code>, <code>Spyrix</code>, <code>SelfService.exe</code>, <code>Citrix Workspace</code>, <code>ReadAndWrite.exe</code>, and <code>WUDFHost.exe</code>. it recognizes <code>chrome.exe</code>, <code>msedge.exe</code>, <code>brave.exe</code>, <code>opera.exe</code>, and <code>firefox.exe</code>. <code>ReadAndWrite.exe</code> sets a detection flag at <code>config+0x4bf</code>; <code>Spyrix</code> produces a violation record.
+                    </p>
+                    <p>
+                        it also enumerates modules loaded in the current process and compares names against allow/block lists. module matches set six flags at <code>config+0x46693</code>-<code>0x46698</code>, later consumed by the VM-allow check. the scan emits the <code>process.list</code> JSON schema and, under <code>config+0x540</code>, calls <code>EnumChildWindows(GetDesktopWindow(), FUN_140242da0, ...)</code>.
+                    </p>
+                    <p>
+                        the process snapshot is built by <code>FUN_14024b1e0</code>. it opens a process with <code>PROCESS_QUERY_INFORMATION|PROCESS_VM_READ</code>, enumerates modules through K32/PSAPI function pointers, reads version resources, and stores the image path. <code>FUN_140239d80</code> builds the <code>process.list</code> diagnostics payload.
+                    </p>
+
+                    <h4>4.3.2 browser-extension scanning</h4>
+                    <p>
+                        <code>FUN_140228ec0</code> scans browser profiles for screen-recording and screen-sharing extensions. it checks the Chrome <code>Default\Extensions</code> and <code>Profile *\Extensions</code> directories, Edge, Brave, and Opera. the embedded table is stored as 0x20-byte records at <code>0x140b33d40</code> with <code>{display name, folder label, flag, extension ID}</code>. the table includes:
+                    </p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>extension</th><th>id</th></tr></thead>
+                            <tbody>
+                                <tr><td>Screencastify</td><td><code>mmeijimgabbpbgpdklnllpncmdofkcpn</code></td></tr>
+                                <tr><td>getscreen.me</td><td><code>iaohfhfkcdddhmpmonkhhblodjfolfmf</code></td></tr>
+                                <tr><td>Google Hangouts</td><td><code>nckgahadagoaajjgafhacjanaoiihapd</code></td></tr>
+                                <tr><td>Youdao dictionary</td><td><code>geboigdomoihijcamklnhlcgnnpdgkmg</code></td></tr>
+                                <tr><td>Nimbus Capture</td><td><code>bpconcjcammlapcogcnnelfmaeghhagj</code></td></tr>
+                                <tr><td>WhatsApp</td><td><code>fadfgobhjoibmjilddjdkeppljcmpbii</code></td></tr>
+                                <tr><td>Loom Screen Recorder</td><td><code>liecbddmkiiihnedobmlmillhodjkdmb</code></td></tr>
+                                <tr><td>ScreenLeap</td><td><code>hpcipbhehomfgjbgnajdhiahhdeeffbg</code></td></tr>
+                                <tr><td>Screen Video Recorder</td><td><code>apiggaccmejkhhjjdmblgoanbilnmfgb</code></td></tr>
+                                <tr><td>SCRE.IO Screen Recorder</td><td><code>hniebljpgcogalllopnjokppmgbhaden</code></td></tr>
+                                <tr><td>CrankWheel</td><td><code>dooinopjfnhlmmdkdepajfipfhlcmjgp</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4>4.3.3 window and desktop enforcement</h4>
+                    <p>
+                        <code>FUN_1402443d0</code> is the top-level <code>EnumWindows</code> callback, run every 12 ticks by <code>FUN_1402640c0</code> while lockdown is active. it hides or closes Office windows (<code>XLMAIN</code>, <code>OpusApp</code>), hides <code>Shell_SecondaryTrayWnd</code>, kills <code>AutoHotkeyGUI</code>, closes <code>Print...</code> and <code>Wireless display toolbar</code>, raises credential dialogs, and closes windows with titles such as <code>Save a...</code>, <code>Select File...</code>, <code>StickyKeys</code>, <code>Sticky Keys</code>, and <code>Power Options</code>.
+                    </p>
+                    <p>
+                        <code>FUN_14023dc50</code> finds <code>Shell_TrayWnd</code> and hides or disables the taskbar. <code>FUN_14024eb10</code> finds <code>Windows.UI.Core.CoreWindow</code> with the title <code>New notification</code> and suppresses notifications every three ticks.
+                    </p>
+
+                    <h4>4.3.4 display, mirroring, and recording</h4>
+                    <p>
+                        the PnP scan <code>FUN_140231310</code> enumerates all present devices with <code>SetupDiGetClassDevsW(NULL, NULL, NULL, DIGCF_PRESENT|DIGCF_ALLCLASSES)</code>, reads <code>SPDRP_DEVICEDESC</code>, and compares descriptions against a configured device list. <code>FUN_1402319b0</code> is the mirror-display wrapper used by the scheduler; a nonzero result logs <code>Mirror display detected, closing browser</code> and takes the close/violation path.
+                    </p>
+                    <p>
+                        a second Miracast path uses WMI against <code>ROOT\CIMV2</code>:
+                    </p>
+                    <div class="code-block">
+                        <div class="code-header">Miracast WMI query</div>
+                        <pre><code class="language-sql">SELECT ProcessId, CommandLine, ExecutablePath FROM Win32_Process
+WHERE Name LIKE '%WUDFHost%' AND CommandLine LIKE '%MiraCast%'</code></pre>
+                    </div>
+                    <p>
+                        it logs <code>WUDF found, %s</code> and correlates with the <code>Wireless display toolbar</code> window title.
+                    </p>
+                    <p>
+                        capture blocking wraps <code>SetWindowDisplayAffinity</code> in <code>FUN_140257df0</code>. <code>FUN_140241360</code> (<code>EnableBlockRecording</code>) evaluates four inputs - <code>config+0x4bd</code>, <code>config+0x4bf</code>, <code>DAT_140cedf60+0x6c0c</code>, and <code>DAT_140cedf60+0x6c50</code> - and either suppresses or enables <code>WDA_MONITOR</code> on the client window. PTC 2 (<code>FUN_140262de0</code>) later calls <code>GetWindowDisplayAffinity</code> and logs <code>PTC 2,1 - Hack type 2 detection</code> if the value is not <code>WDA_MONITOR</code>.
+                    </p>
+                    <p>
+                        the Xbox Game Bar detector <code>FUN_1402373c0</code> uses <code>SHGetFolderPathA(CSIDL_MYVIDEO)</code> and scans the captures directory; a hit enables capture blocking. a microphone probe (<code>FUN_1402a30a0</code>) opens the default wave input at 22050 hz, 8-bit mono; a WMI function (<code>FUN_140260c50</code>) enumerates camera <code>FriendlyName</code> values, logs <code>Webcam - %s</code>, and checks for <code>virtual</code>.
+                    </p>
+
+                    <h4>4.3.5 VM checks</h4>
+                    <p>
+                        <code>FUN_140268780</code> builds a string from the six module flags at <code>config+0x46693</code>-<code>0x46698</code>, appending <code> [%d]</code> for each zero flag, and passes it to <code>FUN_1401c2510</code>, a monitor/report routine that builds a request and logs the response. the returned byte is stored at <code>object+0x469ef</code>; when the allow condition holds, the client logs <code>VM allowed - skipping</code>.
+                    </p>
+                    <p>
+                        <code>FUN_14024a330</code> reads a VM authorization key from an HKLM registry location. the clear block around <code>0x14024ae3f</code> calls <code>FUN_1402a17a0</code>, a thin wrapper over <code>RegOpenKeyExA(HKEY_LOCAL_MACHINE, ...)</code>, <code>RegQueryValueExA</code>, and <code>RegCloseKey</code>. a successful read is logged as <code>vm key found = %d len = %d key = (%s)</code>. the exact key and value names come from the encrypted config string table.
+                    </p>
+
+                    <h4>4.3.6 windows update control</h4>
+                    <p>
+                        <code>FUN_14024c380</code> queries the <code>wuauserv</code> service with <code>OpenSCManagerW</code>, <code>OpenServiceW</code>, <code>QueryServiceConfigW</code>, and <code>QueryServiceStatusEx</code>. <code>FUN_1402411c0</code> implements <code>DisableWindowsAutomaticUpdates</code>: it skips D2L sessions, saves the original start type and state, calls <code>FUN_140256ed0(4, 1)</code> to set the service to <code>SERVICE_DISABLED</code> and stop it, and restores the saved configuration on exit.
+                    </p>
+
+                    <h4>4.3.7 signature and integrity checks</h4>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>function</th><th>role</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>FUN_140270220</code></td><td><code>WinVerifyTrust</code> on a file path (embedded signature)</td></tr>
+                                <tr><td><code>FUN_14026ccd0</code></td><td>catalog verification via <code>CryptCATAdmin*</code></td></tr>
+                                <tr><td><code>FUN_14026bf60</code></td><td>contains the literal <code>blacklist match</code>; likely a hash/blacklist compare</td></tr>
+                                <tr><td><code>FUN_140281020</code></td><td><code>OpenProcess(0x410)</code> + <code>VirtualQueryEx</code> region walk; injection/private-executable-region check</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>the driver separately runs CodeIntegrity checks on browser and DWM images.</p>
+
+                    <h4>4.3.8 periodic scheduler</h4>
+                    <p><code>FUN_1402bb840</code> is the main timer/state machine, driven by a 67 ms timer. the notable schedules are:</p>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>period</th><th>condition</th><th>action</th></tr></thead>
+                            <tbody>
+                                <tr><td>every tick</td><td>lockdown active</td><td><code>FUN_1402640c0</code> gates Tick3 (every 3), foreground tracking, and <code>EnumWindows</code> (every 12)</td></tr>
+                                <tr><td>44 ticks</td><td><code>config+0x4b9</code></td><td>Xbox Game Bar capture detection</td></tr>
+                                <tr><td>46 ticks</td><td><code>config+0x4bc</code></td><td>mirror-display check</td></tr>
+                                <tr><td>65 ticks (<code>0x41</code>)</td><td>lockdown active</td><td>PTC 2 display-affinity check</td></tr>
+                                <tr><td>45 or 23 ticks</td><td><code>runtime+0x6140</code> selects</td><td>additional check in the PTC code region</td></tr>
+                                <tr><td>15 ticks</td><td>cached window valid</td><td><code>SetWindowPos</code>/<code>SetForegroundWindow</code> on the cached window</td></tr>
+                                <tr><td>150 ticks</td><td><code>runtime+0x230 == 0</code>, <code>config+0x4bb == 0</code></td><td><code>FUN_140232f90</code>; if true, violation code 5</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="section5">
+                    <h2>5. bypass design</h2>
+
+                    <h3>5.1 trust-boundary analysis</h3>
+                    <p>
+                        the driver checks the connecting client's image path and Authenticode signature, and it supplies process/image/thread telemetry. the hook module provides global input hooks. the main executable makes the policy decisions: it interprets driver data, scans the environment, decides when to set display affinity, when to clear the clipboard, when to terminate a blacklisted process, and when to remove the keyboard hooks.
+                    </p>
+
+                    <h3>5.2 tool architecture</h3>
+                    <p>the tool is small:</p>
+                    <ul>
+                        <li>a 64-bit DLL (<code>FuckLockdown.dll</code>) injected into <code>LockDownBrowser.exe</code>;</li>
+                        <li>a native injector (<code>injector.exe</code>) that finds the <code>LOCKDOWNCHROME</code> main-window PID and calls <code>LoadLibraryW</code> remotely;</li>
+                        <li>an optional python injector/controller for development;</li>
+                        <li>an INI configuration file.</li>
+                    </ul>
+                    <p>
+                        the DLL uses MinHook for x64 API detours, a low-level keyboard hook for hotkeys, and a named event (<code>Local\FuckLockdown_Screenshot</code>) for screenshot triggering. it logs to <code>%TEMP%\FuckLockdown.log</code>.
+                    </p>
+
+                    <h3>5.3 hook set</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>api</th><th>purpose</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>user32!GetForegroundWindow</code></td><td>return the LDB main window so focus checks see a focused client</td></tr>
+                                <tr><td><code>user32!SetForegroundWindow</code>, <code>BringWindowToTop</code>, <code>SetWindowPos</code>, <code>SetFocus</code></td><td>suppress the client forcing itself topmost/focused</td></tr>
+                                <tr><td><code>user32!EmptyClipboard</code>, <code>SetClipboardData</code></td><td>preserve clipboard contents</td></tr>
+                                <tr><td><code>user32!SetWindowDisplayAffinity</code></td><td>clear <code>WDA_MONITOR</code> for client windows</td></tr>
+                                <tr><td><code>user32!GetWindowDisplayAffinity</code></td><td>return <code>WDA_MONITOR</code> to satisfy PTC 2 while the real window is capturable</td></tr>
+                                <tr><td><code>user32!PostMessageW</code>, <code>SendMessageW</code></td><td>drop <code>WM_CLOSE</code> to other processes</td></tr>
+                                <tr><td><code>kernel32!TerminateProcess</code></td><td>block termination of other processes; allow self-termination</td></tr>
+                                <tr><td><code>kernel32!ExitProcess</code></td><td>pass through so the client can exit normally</td></tr>
+                                <tr><td><code>ntdll!NtTerminateProcess</code></td><td>block termination of other processes; allow self-termination</td></tr>
+                                <tr><td><code>kernel32!K32EnumProcessModules</code>, <code>K32EnumProcessModulesEx</code>, <code>K32GetModuleFileNameExW/A</code></td><td>optional module hiding (<code>hide_module=1</code>)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>5.4 focus, clipboard, and termination</h3>
+                    <p>focus bypass is the smallest possible lie:</p>
+                    <div class="code-block">
+                        <div class="code-header">GetForegroundWindow detour</div>
+                        <pre><code class="language-cpp">HWND WINAPI DetourGetForegroundWindow() {
+    HWND real = pGetForegroundWindow();
+    if (!internal &amp;&amp; focusBypass &amp;&amp; g_ldbMainWnd &amp;&amp;
+        real != g_ldbMainWnd &amp;&amp; IsWindow(g_ldbMainWnd)) {
+        return g_ldbMainWnd;
+    }
+    return real;
+}</code></pre>
+                    </div>
+                    <p>the client's attempts to force itself topmost are swallowed:</p>
+                    <div class="code-block">
+                        <div class="code-header">SetWindowPos detour</div>
+                        <pre><code class="language-cpp">BOOL WINAPI DetourSetWindowPos(HWND hwnd, HWND after, int x, int y,
+                               int cx, int cy, UINT flags) {
+    if (!internal &amp;&amp; focusBypass &amp;&amp; hwnd == g_ldbMainWnd &amp;&amp; after == HWND_TOPMOST)
+        return TRUE;
+    return pSetWindowPos(hwnd, after, x, y, cx, cy, flags);
+}</code></pre>
+                    </div>
+                    <p>the tool's own focus operations call the original functions through the MinHook trampolines, so <code>Ctrl+Down</code> can still focus LDB and <code>Ctrl+Up</code> can drop it from the topmost band and cycle to another window.</p>
+                    <p>clipboard preservation is a simple pair of detours:</p>
+                    <div class="code-block">
+                        <div class="code-header">clipboard detours</div>
+                        <pre><code class="language-cpp">BOOL WINAPI DetourEmptyClipboard() {
+    if (!internal &amp;&amp; clipboardBypass) return TRUE;
+    return pEmptyClipboard();
+}
+
+HANDLE WINAPI DetourSetClipboardData(UINT fmt, HANDLE mem) {
+    if (!internal &amp;&amp; clipboardBypass) return mem; // pretend success
+    return pSetClipboardData(fmt, mem);
+}</code></pre>
+                    </div>
+                    <p>the screenshot path uses the original <code>EmptyClipboard</code> and <code>SetClipboardData</code> through raw function pointers, so it can still place a DIB on the clipboard.</p>
+                    <p>termination handling is split on purpose:</p>
+                    <div class="code-block">
+                        <div class="code-header">TerminateProcess detour</div>
+                        <pre><code class="language-cpp">BOOL WINAPI DetourTerminateProcess(HANDLE process, UINT exitCode) {
+    const bool self = (process == GetCurrentProcess()) ||
+                      (GetProcessId(process) == GetCurrentProcessId());
+    if (!internal &amp;&amp; terminateBypass &amp;&amp; !self) return TRUE;
+    return pTerminateProcess(process, exitCode);
+}</code></pre>
+                    </div>
+                    <p>
+                        <code>ExitProcess</code> is always passed through. that distinction matters: the CRT exit wrapper in <code>LockDownBrowser.exe</code> at <code>0xA7B394</code> calls <code>GetCurrentProcess</code> and <code>TerminateProcess</code>/<code>ExitProcess</code>, then ends in <code>int3</code> padding at <code>0xA7B3C0</code>. if the tool blocks the process's own exit, the wrapper returns into the padding and the client dies with <code>0x80000003</code> or <code>0xC0000409</code>. blocking only other processes preserves the close-blacklisted-apps feature without breaking the client's own shutdown path.
+                    </p>
+
+                    <h3>5.5 display-affinity bypass</h3>
+                    <p>
+                        at injection and once per second, the tool calls the original <code>SetWindowDisplayAffinity(hwnd, WDA_NONE)</code> on every window owned by the LDB process. future <code>SetWindowDisplayAffinity</code> calls on client windows are converted to <code>WDA_NONE</code>, and <code>GetWindowDisplayAffinity</code> returns <code>WDA_MONITOR</code> so PTC 2 remains satisfied:
+                    </p>
+                    <div class="code-block">
+                        <div class="code-header">display-affinity detours</div>
+                        <pre><code class="language-cpp">BOOL WINAPI DetourSetWindowDisplayAffinity(HWND hwnd, DWORD affinity) {
+    if (!internal &amp;&amp; drmBypass &amp;&amp; IsCurrentProcessWindow(hwnd)) {
+        pSetWindowDisplayAffinity(hwnd, WDA_NONE);
+        return TRUE;
+    }
+    return pSetWindowDisplayAffinity(hwnd, affinity);
+}
+
+BOOL WINAPI DetourGetWindowDisplayAffinity(HWND hwnd, DWORD* affinity) {
+    if (!internal &amp;&amp; drmBypass &amp;&amp; IsCurrentProcessWindow(hwnd)) {
+        if (affinity) *affinity = WDA_MONITOR;
+        return TRUE;
+    }
+    return pGetWindowDisplayAffinity(hwnd, affinity);
+}</code></pre>
+                    </div>
+                    <p>this is the key to the DRM screenshot bypass: the real window has no affinity, so <code>BitBlt</code> captures it; the client's integrity check sees the expected <code>WDA_MONITOR</code> value.</p>
+
+                    <h3>5.6 hook-module removal and Win+F1-F12 unlock</h3>
+                    <p>
+                        the hook module's <code>HHOOK</code>s are read from <code>LockDownBrowser.dll+0x1c000</code>, <code>+0x1c008</code>, and <code>+0x1c010</code>, passed to <code>UnhookWindowsHookEx</code>, and zeroed. the exports <code>CLDBDoSomeOtherStuff</code>, <code>CLDBDoSomeStuff</code>, and <code>CLDBDoYetMoreStuff</code> are patched to <code>xor eax,eax; ret</code> so the main executable cannot reinstall them. the tool's own <code>WH_KEYBOARD_LL</code> hook remains and handles the hotkeys; everything else reaches the system, including Win+F1-F12.
+                    </p>
+                    <p>export patching can be disabled with <code>patch_ldb_exports=0</code>; the watchdog still removes any hook that appears, but the client may reinstall between watchdog ticks.</p>
+
+                    <h3>5.7 hotkeys and window management</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>hotkey</th><th>action</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>Ctrl+Left</code> / <code>Ctrl+Right</code></td><td>cycle visible top-level windows</td></tr>
+                                <tr><td><code>Ctrl+Down</code></td><td>minimize other windows, restore/topmost/focus LDB</td></tr>
+                                <tr><td><code>Ctrl+Up</code></td><td>drop LDB from topmost and cycle to the next window</td></tr>
+                                <tr><td><code>Ctrl+Shift+S</code></td><td>capture the virtual screen to PNG and clipboard</td></tr>
+                                <tr><td><code>Delete</code></td><td>terminate the injected process via the original <code>TerminateProcess</code></td></tr>
+                                <tr><td><code>F8</code> / <code>F10</code></td><td>hide/show the taskbar</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        window cycling uses <code>EnumWindows</code>, filters visible top-level windows with titles, excludes shell windows and cloaked UWP hosts, restores the selected window, attaches to the foreground thread, and calls the original <code>SetForegroundWindow</code>/<code>BringWindowToTop</code>/<code>SetFocus</code>/<code>SetWindowPos</code>.
+                    </p>
+
+                    <h3>5.8 screenshot pipeline</h3>
+                    <p>the screenshot path is native GDI/GDI+:</p>
+                    <ol>
+                        <li><code>CreateDCW(L"DISPLAY", ...)</code> obtains the virtual-screen DC;</li>
+                        <li><code>CreateCompatibleBitmap</code> and <code>BitBlt</code> capture the full screen with <code>SRCCOPY|CAPTUREBLT</code>;</li>
+                        <li>GDI+ encodes the bitmap as PNG to <code>Pictures\FuckLockdown\screenshot_YYYYMMDD_HHMMSS.png</code>, with a fallback to <code>%TEMP%\FuckLockdown</code>;</li>
+                        <li>a DIB copy is placed on the clipboard with the original clipboard functions;</li>
+                        <li>failures are logged, and the PNG encoder/save status is recorded.</li>
+                    </ol>
+                    <p>
+                        the fallback matters. redirected or read-only Pictures folders can fail to produce the target directory even when the process is elevated; using <code>std::filesystem::create_directories</code> and a <code>%TEMP%</code> fallback makes the PNG path reliable.
+                    </p>
+                </section>
+
+                <section id="section6">
+                    <h2>6. evaluation</h2>
+                    <h3>6.1 test environment</h3>
+                    <p>
+                        the test machine ran windows with the installed <code>LockDownService215</code> service and the <code>LockDownBrowser.exe</code> 2.1.6.02 client.
+                    </p>
+                    <h3>6.2 feature status</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>feature</th><th>status</th></tr></thead>
+                            <tbody>
+                                <tr><td>DLL injection into the LDB main process</td><td>verified</td></tr>
+                                <tr><td>hook installation / LDB hook removal</td><td>verified in the live log</td></tr>
+                                <tr><td>Win+F1-F12 unlock path</td><td>implemented and confirmed in the live log (HHOOKs removed AND exports patched)</td></tr>
+                                <tr><td>DRM screenshot to clipboard</td><td>verified (non-black DIB)</td></tr>
+                                <tr><td>PNG screenshot with fallback</td><td>verified in the sacrificial process</td></tr>
+                                <tr><td>window cycling / focus hotkeys</td><td>implemented; working</td></tr>
+                                <tr><td>clipboard preservation</td><td>implemented; working</td></tr>
+                                <tr><td>cross-process termination / WM_CLOSE blocking</td><td>implemented; working on blacklisted applications</td></tr>
+                                <tr><td><code>Delete</code> kill</td><td>implemented; working</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="section7">
+                    <h2>7. conclusion</h2>
+                    <p>
+                        LockDown Browser 2.1.6.02 is a layered client: a kernel driver supplies telemetry, a hook module filters input, and the main executable makes policy decisions. the driver's port ACL and image monitoring are meaningful defenses, but they do not protect the user-mode consumer from in-process patching. a relatively small set of API detours inside the signed browser process is enough to suppress focus stealing, preserve the clipboard, block cross-process termination, remove the keyboard hooks, and defeat <code>WDA_MONITOR</code> for screenshots.
+                    </p>
+                    <p>
+                        compared to the AVs, EDRs, and Anti-Cheats i'm used to, this was a really easy nut to crack, somehow, a company managed to scam dozens of schools to use their dogshit, overpriced, overpromising software in order to "protect" academic integrity. so i'll say it for all of us, fuck you respondus!
+                    </p>
+                </section>
+
+                <section id="appendix-a">
+                    <h2>appendix a - function map</h2>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>VA range</th><th>function</th><th>role</th></tr></thead>
+                            <tbody>
+                                <tr><td>0x14015f690-0x140160123</td><td><code>FUN_14015f690</code></td><td>main window setup, desktop hook, timer, VM key, WU disable</td></tr>
+                                <tr><td>0x14016f020-0x140170cd7</td><td><code>FUN_14016f020</code></td><td>clipboard listener, URL policy, mirror scan, affinity, process scan</td></tr>
+                                <tr><td>0x1401778d0-0x1401783a5</td><td><code>FUN_1401778d0</code></td><td>periodic scan wrapper (flattened)</td></tr>
+                                <tr><td>0x140228ec0-~0x140229d84</td><td><code>FUN_140228ec0</code></td><td>browser-extension screen-recording scan</td></tr>
+                                <tr><td>0x14022ab00-0x14022d3ce</td><td><code>FUN_14022ab00</code></td><td>main process/environment scan</td></tr>
+                                <tr><td>0x14022d3d0-0x14022fb89</td><td><code>FUN_14022d3d0</code></td><td>PTC 5/6/16 checks</td></tr>
+                                <tr><td>0x140231310-~0x1402319b0</td><td><code>FUN_140231310</code></td><td>PnP device-description scan</td></tr>
+                                <tr><td>0x1402319b0-~0x140232f4f</td><td><code>FUN_1402319b0</code></td><td>mirror-display check wrapper</td></tr>
+                                <tr><td>0x1402373c0-0x140238d56</td><td><code>FUN_1402373c0</code></td><td>Xbox Game Bar capture detection</td></tr>
+                                <tr><td>0x140239d80-0x14023a148</td><td><code>FUN_140239d80</code></td><td><code>process.list</code> diagnostics builder</td></tr>
+                                <tr><td>0x14023af60-0x14023bc4d</td><td><code>FUN_14023af60</code></td><td>master hook installer</td></tr>
+                                <tr><td>0x14023bc50-0x14023c76e</td><td><code>FUN_14023bc50</code></td><td>raw input + keyboard hook installer</td></tr>
+                                <tr><td>0x14023dc50-0x14023ef5a</td><td><code>FUN_14023dc50</code></td><td>taskbar hide/disable</td></tr>
+                                <tr><td>0x1402411c0-0x140241269</td><td><code>FUN_1402411c0</code></td><td>disable/restore Windows Update</td></tr>
+                                <tr><td>0x140241360-0x140241e97</td><td><code>FUN_140241360</code></td><td><code>EnableBlockRecording</code></td></tr>
+                                <tr><td>0x1402443d0-0x1402456cc</td><td><code>FUN_1402443d0</code></td><td>window/class/title enforcement</td></tr>
+                                <tr><td>0x14024a330-0x14024b1d5</td><td><code>FUN_14024a330</code></td><td>VM key registry check</td></tr>
+                                <tr><td>0x14024b1e0-...</td><td><code>FUN_14024b1e0</code></td><td>process snapshot record fill</td></tr>
+                                <tr><td>0x14024c380-0x14024d3da</td><td><code>FUN_14024c380</code></td><td><code>GetWin10UpdateServiceState</code></td></tr>
+                                <tr><td>0x14024eb10-0x14024ebb1</td><td><code>FUN_14024eb10</code></td><td>notification suppression</td></tr>
+                                <tr><td>0x140256ed0-0x140257de8</td><td><code>FUN_140256ed0</code></td><td>service config/start/stop</td></tr>
+                                <tr><td>0x140257df0-0x140258bb7</td><td><code>FUN_140257df0</code></td><td><code>SetWindowDisplayAffinity</code> wrapper</td></tr>
+                                <tr><td>0x14025e440-0x14025f60e</td><td><code>FUN_14025e440</code></td><td>PTC 4,1 check</td></tr>
+                                <tr><td>0x14025f790-0x140260c50</td><td><code>FUN_14025f790</code></td><td>WMI Miracast check</td></tr>
+                                <tr><td>0x140260c50-0x140261721</td><td><code>FUN_140260c50</code></td><td>WMI webcam enumeration</td></tr>
+                                <tr><td>0x140262d60-~0x140262de0</td><td><code>FUN_140262d60</code></td><td>additional PTC-region check</td></tr>
+                                <tr><td>0x140262de0-0x1402640b3</td><td><code>FUN_140262de0</code></td><td>PTC 2,1 display-affinity check</td></tr>
+                                <tr><td>0x1402640c0-~0x140264220</td><td><code>FUN_1402640c0</code></td><td>window/foreground scan scheduler</td></tr>
+                                <tr><td>0x140268780-0x14026986e</td><td><code>FUN_140268780</code></td><td>VM allow check</td></tr>
+                                <tr><td>0x14026bf60-0x14026ccc6</td><td><code>FUN_14026bf60</code></td><td>blacklist compare</td></tr>
+                                <tr><td>0x14026ccd0-0x14026e040</td><td><code>FUN_14026ccd0</code></td><td>catalog signature verification</td></tr>
+                                <tr><td>0x140270220-0x14027030e</td><td><code>FUN_140270220</code></td><td><code>WinVerifyTrust</code> helper</td></tr>
+                                <tr><td>0x140281020-0x1402831c0</td><td><code>FUN_140281020</code></td><td>memory-region inspection</td></tr>
+                                <tr><td>0x1402a30a0-0x1402a3238</td><td><code>FUN_1402a30a0</code></td><td>microphone probe</td></tr>
+                                <tr><td>0x1402a5f20-0x1402a6df6</td><td><code>FUN_1402a5f20</code></td><td>PnP hardware inventory</td></tr>
+                                <tr><td>0x1402bb840-...</td><td><code>FUN_1402bb840</code></td><td>periodic detection scheduler</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="appendix-b">
+                    <h2>appendix b - driver protocol summary</h2>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>opcode</th><th>direction</th><th>meaning</th></tr></thead>
+                            <tbody>
+                                <tr><td>0</td><td>client &rarr; driver</td><td>get driver RSA public key</td></tr>
+                                <tr><td>1</td><td>client &rarr; driver</td><td>import client RSA public key</td></tr>
+                                <tr><td>2</td><td>client &rarr; driver</td><td>set AES session key</td></tr>
+                                <tr><td>3</td><td>client &rarr; driver</td><td>secure envelope</td></tr>
+                                <tr><td>4 &rarr; 5</td><td>client &rarr; driver</td><td>process list</td></tr>
+                                <tr><td>6 &rarr; 7</td><td>client &rarr; driver</td><td>browser image list</td></tr>
+                                <tr><td>8 &rarr; 9</td><td>client &rarr; driver</td><td>DWM image list</td></tr>
+                                <tr><td>0xC</td><td>client &rarr; driver</td><td>one process record by PID</td></tr>
+                                <tr><td>0xD &rarr; 0xE</td><td>client &rarr; driver</td><td>PID list</td></tr>
+                                <tr><td>0xF &rarr; 0x10</td><td>client &rarr; driver</td><td>thread-check states</td></tr>
+                                <tr><td>0x11 &rarr; 0x12</td><td>client &rarr; driver</td><td><code>smss.exe</code> / boot time</td></tr>
+                                <tr><td>0x13</td><td>client &rarr; driver</td><td>set notification flag</td></tr>
+                                <tr><td>0x14 &rarr; 0x15</td><td>client &rarr; driver</td><td>fileless-execution check</td></tr>
+                                <tr><td>0xA</td><td>driver &rarr; client</td><td>process created/exited</td></tr>
+                                <tr><td>0xB</td><td>driver &rarr; client</td><td>image loaded</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="appendix-c">
+                    <h2>appendix c - hook targets</h2>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>target</th><th>detour behavior</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>GetForegroundWindow</code></td><td>return LDB main window</td></tr>
+                                <tr><td><code>SetForegroundWindow</code></td><td>block when target is LDB</td></tr>
+                                <tr><td><code>BringWindowToTop</code></td><td>block when target is LDB</td></tr>
+                                <tr><td><code>SetWindowPos</code></td><td>block <code>HWND_TOPMOST</code> on LDB</td></tr>
+                                <tr><td><code>SetFocus</code></td><td>block main-window focus steal</td></tr>
+                                <tr><td><code>SetWindowDisplayAffinity</code></td><td>force <code>WDA_NONE</code> for client windows</td></tr>
+                                <tr><td><code>GetWindowDisplayAffinity</code></td><td>return <code>WDA_MONITOR</code> for client windows</td></tr>
+                                <tr><td><code>EmptyClipboard</code></td><td>no-op</td></tr>
+                                <tr><td><code>SetClipboardData</code></td><td>pretend success</td></tr>
+                                <tr><td><code>TerminateProcess</code></td><td>block other processes; allow self</td></tr>
+                                <tr><td><code>ExitProcess</code></td><td>pass through</td></tr>
+                                <tr><td><code>NtTerminateProcess</code></td><td>block other processes; allow self</td></tr>
+                                <tr><td><code>PostMessageW</code> / <code>SendMessageW</code></td><td>drop <code>WM_CLOSE</code> to other processes</td></tr>
+                                <tr><td><code>K32EnumProcessModules</code> / <code>Ex</code></td><td>optional module filtering</td></tr>
+                                <tr><td><code>K32GetModuleFileNameExW</code> / <code>A</code></td><td>optional module-name hiding</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </article>
+
+            <footer class="writeup-footer">
+                <p><strong>note:</strong> this writeup is for security research and defensive analysis. the client was owned by me and all bypasses were demonstrated locally.</p>
+            </footer>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-bottom">
+                    <a href="../" class="back-link">&larr; back to main site</a>
+                    <div class="footer-bottom-inner">
+                        <div class="copyright-line">
+                            <p>&copy; 2026 redecorate.dev</p>
+                            <p>letdown browser writeup - v2.1.6.02-research</p>
+                        </div>
+                        <p id="footer-quote"></p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script src="../script.js" defer></script>
+    <script>
+    (function(){
+        function htmlEscape(s){
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,'&gt;');
+        }
+
+        function protect(text, regex, type, placeholders){
+            return text.replace(regex, function(m){
+                var id = placeholders.length;
+                placeholders.push('<span class="token ' + type + '">' + htmlEscape(m) + '</span>');
+                return '___PLACEHOLDER_'+id+'___';
+            });
+        }
+
+        function restorePlaceholders(s, placeholders){
+            return s.replace(/___PLACEHOLDER_(\d+)___/g, function(_, i){ return placeholders[Number(i)] || _; });
+        }
+
+        function wrapWords(s, words, cls){
+            if (!words.length) return s;
+            var pattern = new RegExp('\\b(' + words.map(function(w){return w.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');}).join('|') + ')\\b', 'g');
+            return s.replace(pattern, '<span class="token ' + cls + '">$1</span>');
+        }
+
+        function highlightCpp(src){
+            var placeholders = [];
+            var t = src;
+            t = protect(t, /\/\*[\s\S]*?\*\//g, 'comment', placeholders);
+            t = protect(t, /\/\/.*$/gm, 'comment', placeholders);
+            t = protect(t, /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])+'/g, 'string', placeholders);
+
+            var e = htmlEscape(t);
+            e = wrapWords(e, [
+                'alignas','alignof','and','asm','auto','bool','break','case','catch','char','class','const','constexpr','continue','decltype','default','delete','do','double','else','enum','explicit','extern','false','float','for','friend','if','inline','int','long','namespace','new','noexcept','nullptr','operator','private','protected','public','return','short','signed','sizeof','static','struct','switch','template','this','throw','true','try','typedef','typename','union','unsigned','using','virtual','void','volatile','while'
+            ], 'keyword');
+            e = wrapWords(e, ['uint32_t','uint64_t','size_t','std','HVV'], 'type');
+            e = e.replace(/\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?(?:e[+\-]?\d+)?)\b/g, '<span class="token number">$1</span>');
+            e = e.replace(/\b([A-Za-z_]\w*)\s*(?=\()/g, '<span class="token function">$1</span>');
+            return restorePlaceholders(e, placeholders);
+        }
+
+        function highlightElement(code){
+            var lang = '';
+            for (var i=0;i<code.classList.length;i++){
+                var cls = code.classList[i];
+                if (cls.indexOf('language-') === 0) { lang = cls.slice(9); break; }
+            }
+            var src = code.textContent;
+            var out = src;
+            if (lang === 'cpp' || lang === 'c++' || lang === 'c' || lang === 'h') out = highlightCpp(src);
+            else out = htmlEscape(src);
+            code.innerHTML = out;
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function(){
+                document.querySelectorAll('.code-block pre code').forEach(highlightElement);
+            });
+        } else {
+            document.querySelectorAll('.code-block pre code').forEach(highlightElement);
+        }
+    })();
+    </script>
+</body>
+</html>
