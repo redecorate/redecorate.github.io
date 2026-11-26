@@ -41,8 +41,6 @@
 
 	var profilePics = [
 		'images/pfps/pfp.jpg',
-		'images/pfps/pfp-alt.jpg',
-		'images/pfps/pfp-rare.jpg',
 		'images/pfps/my-wife.jpg',
 		'images/pfps/shocked-mori.jpg'
 	];
