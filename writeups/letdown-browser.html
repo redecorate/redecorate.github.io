@@ -170,7 +170,7 @@
                         the target was <code>LockDownBrowser.exe</code> 2.1.6.02, 64-bit, image base <code>0x140000000</code>, SHA-256 starting <code>86f39c5a...</code>. the driver and hook module came from the same installed copy.
                     </p>
                     <p>
-                        static analysis was mostly ghidra (thank you NSA). three things made it fucking re*****d to work with. first, large parts of the main executable are flattened, linear disassembly desynchronizes and ghidra function bodies often stop at the first flattened branch. second, the PE parser used by ghidra truncates the <code>.pdata</code> exception directory. reading <code>.pdata</code> directly from the file produced 21,325 usable entries covering 95.9% of <code>.text</code>. third, many string references land in <code>.pdata</code> ranges that were never defined as functions.
+                        static analysis was mostly ghidra (thank you NSA). three things made it stupid to work with. first, large parts of the main executable are flattened, linear disassembly desynchronizes and ghidra function bodies often stop at the first flattened branch. second, the PE parser used by ghidra truncates the <code>.pdata</code> exception directory. reading <code>.pdata</code> directly from the file produced 21,325 usable entries covering 95.9% of <code>.text</code>. third, many string references land in <code>.pdata</code> ranges that were never defined as functions.
                     </p>
                     <p>
                         the workarounds were mechanical: a one-pass capstone index of RIP-relative string references, a one-pass import-reference index (9,370 call/jump sites, holy moly respondus, compensating for somethin?), a raw <code>.pdata</code>-bounded function summarizer, and a targeted range disassembler for rebuilding obfuscated blocks. when a flattened function still ended early, the block was reconstructed with capstone instead of trusting the decompiler.
@@ -468,7 +468,7 @@ WHERE Name LIKE '%WUDFHost%' AND CommandLine LIKE '%MiraCast%'</code></pre>
     return real;
 }</code></pre>
                     </div>
-                    <p>the client's attempts to force itself topmost are given the jfk treatment:</p>
+                    <p>the client's attempts to force itself topmost are stopped:</p>
                     <div class="code-block">
                         <div class="code-header">SetWindowPos detour</div>
                         <pre><code class="language-cpp">BOOL WINAPI DetourSetWindowPos(HWND hwnd, HWND after, int x, int y,
@@ -600,10 +600,7 @@ BOOL WINAPI DetourGetWindowDisplayAffinity(HWND hwnd, DWORD* affinity) {
                         LockDown Browser 2.1.6.02 is a layered client: a kernel driver supplies telemetry, a hook module filters input, and the main executable makes policy decisions. the driver's port ACL and image monitoring are meaningful defenses, but they do not protect the user-mode consumer from in-process patching. a relatively small set of API detours inside the signed browser process is enough to suppress focus stealing, preserve the clipboard, block cross-process termination, remove the keyboard hooks, and defeat <code>WDA_MONITOR</code> for screenshots.
                     </p>
                     <p>
-                        compared to the AVs, EDRs, and Anti-Cheats i'm used to, this was a really easy nut to crack, somehow, a company managed to scam dozens of schools to use their dogshit, overpriced, overpromising software in order to "protect" academic integrity. so i'll say it for all of us, fuck you respondus!
-                    </p>
-                    <figure class="writeup-figure">
-                        <img src="../images/LMAO.png" alt="Brightspace exam results page with the redecorate GitHub profile open on top of it.">
+                        compared to the AVs, EDRs, and Anti-Cheats i'm used to, this was a really easy nut to crack, somehow, a company managed to scam dozens of schools to use their dogshit, overpriced, overpromising software in order to "protect" academic integrity. This ends up leaving both the school and student at risk, an attacker could easily inject into Lockdown Browser's executable and hijack the programs own functions for their malicious use.
                         <figcaption>pwned.</figcaption>
                     </figure>
                 </section>
