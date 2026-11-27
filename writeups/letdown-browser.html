@@ -378,7 +378,7 @@ WHERE Name LIKE '%WUDFHost%' AND CommandLine LIKE '%MiraCast%'</code></pre>
                         <code>FUN_140268780</code> builds a string from the six module flags at <code>config+0x46693</code>-<code>0x46698</code>, appending <code> [%d]</code> for each zero flag, and passes it to <code>FUN_1401c2510</code>, a monitor/report routine that builds a request and logs the response. the returned byte is stored at <code>object+0x469ef</code>; when the allow condition holds, the client logs <code>VM allowed - skipping</code>.
                     </p>
                     <p>
-                        <code>FUN_14024a330</code> reads a VM authorization key from an HKLM registry location. the clear block around <code>0x14024ae3f</code> calls <code>FUN_1402a17a0</code>, a thin wrapper over <code>RegOpenKeyExA(HKEY_LOCAL_MACHINE, ...)</code>, <code>RegQueryValueExA</code>, and <code>RegCloseKey</code>. a successful read is logged as <code>vm key found = %d len = %d key = (%s)</code>. the exact key and value names come from the encrypted config string table. looks like Al-Resqaedus is doing VM detection terrorism... again.
+                        <code>FUN_14024a330</code> reads a VM authorization key from an HKLM registry location. the clear block around <code>0x14024ae3f</code> calls <code>FUN_1402a17a0</code>, a thin wrapper over <code>RegOpenKeyExA(HKEY_LOCAL_MACHINE, ...)</code>, <code>RegQueryValueExA</code>, and <code>RegCloseKey</code>. a successful read is logged as <code>vm key found = %d len = %d key = (%s)</code>. the exact key and value names come from the encrypted config string table.
                     </p>
 
                     <h4>4.3.6 windows update control</h4>
