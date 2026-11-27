@@ -256,7 +256,6 @@ code {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     position: relative;
-    min-height: calc(100vh - 100%);
 }
 
 .footer-content {
